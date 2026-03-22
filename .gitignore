@@ -1,6 +1,10 @@
 #Full Dataset
 tracks_features.csv
 
+#virtual environment
+venv/
+.venv/
+
 # Prerequisites
 *.d
 
