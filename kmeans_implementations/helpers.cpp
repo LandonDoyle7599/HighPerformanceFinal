@@ -16,6 +16,34 @@ double Point::distance(const Point& p) const {
            (z - p.z)*(z - p.z);
 }
 
+Args::Args(int argc, char const *argv[]) {
+    if (argc >= 4) {
+        k = atoi(argv[1]);
+        input_file = argv[2];
+        output_dir = argv[3];
+        for (int i = 4; i < argc; ++i) {
+            string flag = argv[i];
+            
+            //handle skipping serial
+            if (flag == "--skip_serial") skip_serial = true;
+
+            //handle shared cpu and num threads
+            else if (flag == "--shared_cpu") {
+                shared_cpu = true;
+                if (i + 1 < argc) {
+                    num_threads = atoi(argv[i + 1]);
+                    i++;
+                }
+            }
+            
+            else if (flag == "--cuda_gpu") cuda_gpu = true; //add onto this for any additional args
+            else if (flag == "--dist_cpu") dist_cpu = true; //add onto this for any additional args
+            else if (flag == "--dist_gpu") dist_gpu = true; //add onto this for any additional args
+        }
+    } else {
+        throw invalid_argument("Usage: <number_of_clusters> <input_file> <output_dir> [--shared_cpu <num_threads>] [--cuda_gpu] [--dist_cpu] [--dist_gpu] [--skip_serial]");
+    }
+}
 
 void writeOutput(vector<Point>& points, const string& filename) {
     ofstream file(filename);

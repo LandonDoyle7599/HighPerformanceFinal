@@ -90,10 +90,7 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
     }
 }
 
-void performSharedCPUKMeans(vector<Point>& points, int epochs,  int k, vector<Point>& centroids, const string& output_dir) {
-    int num_threads;
-    cout << "Enter the number of threads to use for the shared CPU implementation: ";
-    cin >> num_threads;    
+void performSharedCPUKMeans(vector<Point>& points, int epochs,  int k, vector<Point>& centroids, const string& output_dir, int num_threads) {
     omp_set_num_threads(num_threads);
     auto start_time = chrono::high_resolution_clock::now();
     sharedCPUKMeansClustering(points, epochs, k, centroids);
