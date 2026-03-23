@@ -14,7 +14,7 @@ The program takes three arguments:
 
 Optional Flags:
 - `--skip-serial` : Skip executing the serial implementation.
-- `--cpu-shared` : Run the shared memory CPU implementation.
+- `--shared-cpu` : Run the shared memory CPU implementation. This implementation will prompt for the number of threads to use, must be an integer.
 - `--cuda-gpu` : Run the CUDA GPU implementation.
 - `--dist-cpu` : Run the distributed computing CPU implementation.
 - `--dist-gpu` : Run the distributed computing GPU implementation.
@@ -28,6 +28,16 @@ Example execution of serial implementation:
 ```bash
 g++ -o /kmeans_implementations/*.cpp -o kmeans
 ./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs
+```
+
+### Shared Memory CPU Implementation
+
+Example execution of shared memory CPU implementation:
+
+```bash
+g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
+./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu
+Enter the number of threads to use for the shared CPU implementation: 8
 ```
 
 ## Python Utilities
