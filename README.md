@@ -12,6 +12,9 @@ Brady: Implemented the distributed CPU implementation and updated the readme acc
 Because the centroids in the kmeans algorithm are randomly initialized, each implementation is run
 from a single master file that shares the starting centroids between implementations.
 
+### Load CHPC Modules
+` module load gcc cuda intel-mpi cmake `
+
 ### Program Arguments
 
 The program takes three arguments:
