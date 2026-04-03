@@ -1,9 +1,19 @@
 # HighPerformanceFinal
 
+## Division of Labor
+Landon: Implemented the serial and shared memory CPU implementations. Created the github repo and discord. Created all the python utils to visualize, validate, and trim the dataset. Wrote the README and organized the project structure including helpers.cpp and kmeans.cpp.
+
+Kevin: Implemented the cuda GPU and distributed GPU implementations, updated the readme accordingly.
+
+Brady: Implemented the distributed CPU implementation and updated the readme accordingly. Brady also performed the scaling studies.
+
 ## How To Run
 
 Because the centroids in the kmeans algorithm are randomly initialized, each implementation is run
 from a single master file that shares the starting centroids between implementations.
+
+### Load CHPC Modules
+` module load gcc cuda intel-mpi cmake `
 
 ### Program Arguments
 
