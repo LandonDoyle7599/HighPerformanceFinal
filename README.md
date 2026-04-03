@@ -40,6 +40,15 @@ g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
 Enter the number of threads to use for the shared CPU implementation: 8
 ```
 
+### CUDA GPU Implementation
+
+Example execution of CUDA GPU implementation:
+
+```bash
+nvcc -o kmeans kmeans_implementations/*.cu kmeans_implementations/*.cpp 
+./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --cuda-gpu
+```
+
 ## Python Utilities
 
 It is recommended to create a python virtual environment to run the python utilities. A requirements.txt file has been included to easily install dependencies. To create a virtual environment and install dependencies, run the following commands:
