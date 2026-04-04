@@ -46,8 +46,7 @@ Example execution of shared memory CPU implementation:
 
 ```bash
 g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
-./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu
-Enter the number of threads to use for the shared CPU implementation: 8
+./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu 8 --skip_serial
 ```
 
 ## Python Utilities
