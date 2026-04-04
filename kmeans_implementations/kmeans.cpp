@@ -5,6 +5,7 @@
 #include "helpers.hpp"
 #include "serial.hpp"
 #include "shared_cpu.hpp"
+#include "kMeanCPUDistribute.hpp"
 using namespace std;
 
 
@@ -39,6 +40,7 @@ int main(int argc, char const *argv[])
     } 
     if (args.cuda_gpu) {
         //call cuda gpu implementation
+
     } 
     if (args.dist_cpu) {
         //call distributed cpu implementation
