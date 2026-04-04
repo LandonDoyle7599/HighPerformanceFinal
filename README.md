@@ -15,6 +15,9 @@ from a single master file that shares the starting centroids between implementat
 ### Load CHPC Modules
 ` module load gcc cuda intel-mpi cmake `
 
+When running in the CHPC, if running a GPU implementation ensure a GPU has been allocated, and compile with the following 
+` nvcc /kmeans_implementations/*.cpp /kmeans_implementations/*.cu -Xcompiler -fopenmp -ccbin mpicxx -o kmeans` #TODO: make sure this works for every implementation
+
 ### Program Arguments
 
 The program takes three arguments:
