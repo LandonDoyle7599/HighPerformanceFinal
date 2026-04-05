@@ -25,16 +25,14 @@ std::vector<Point>* kMeansClustering(std::vector<Point>* points, std::vector<Poi
   
   for(int i = 0; i < epochs; i++){
 
-    for(std::vector<Point>::iterator c = begin(centroids); c != end(centroids); ++c){
-      int clusterId = c - begin(centroids);
-      for(int it = 0; it < mySize; it++){
-        Point p = points->at(it);
-        double dist = c->distance(p);
+    for(int it = 0; it < mySize; it++){
+      Point &p = points->at(it);
+      for(int c = 0; c < k; c++){
+        double dist = centroids[c].distance(p);
         if(dist < p.minDist){
           p.minDist = dist;
-          p.cluster = clusterId;
+          p.cluster = c;
         }
-        points->at(it) = p;
       }
     }
     
@@ -50,42 +48,22 @@ std::vector<Point>* kMeansClustering(std::vector<Point>* points, std::vector<Poi
 
       points->at(it).minDist = __DBL_MAX__;
     }
-    
-    for (std::vector<Point>::iterator c = begin(centroids); c != end(centroids); ++c) {
-      int clusterId = c - std::begin(centroids);
-      if (nPoints[clusterId] > 0) {
-        c->x = sumX[clusterId] / nPoints[clusterId];
-        c->y = sumY[clusterId] / nPoints[clusterId];
-        c->z = sumZ[clusterId] / nPoints[clusterId];
+
+    std::vector<int> nPointsGlobal(k);
+    std::vector<double> sumXGlobal(k), sumYGlobal(k), sumZGlobal(k);
+
+    MPI_Allreduce(nPoints.data(), nPointsGlobal.data(), k, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(sumX.data(), sumXGlobal.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(sumY.data(), sumYGlobal.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(sumZ.data(), sumZGlobal.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+    for (int clusterId = 0; clusterId < k; ++clusterId) {
+      if (nPointsGlobal[clusterId] > 0) {
+        centroids[clusterId].x = sumXGlobal[clusterId] / nPointsGlobal[clusterId];
+        centroids[clusterId].y = sumYGlobal[clusterId] / nPointsGlobal[clusterId];
+        centroids[clusterId].z = sumZGlobal[clusterId] / nPointsGlobal[clusterId];
       }
     }
-     
-    std::vector<double> localArrX;
-    std::vector<double> localArrY;
-    std::vector<double> localArrZ;
-    std::vector<int> localArrCluster;
-    
-    for(int i = 0; i < k; i++){
-      localArrX.push_back(centroids[i].x);
-      localArrY.push_back(centroids[i].y);
-      localArrZ.push_back(centroids[i].z);
-      localArrCluster.push_back(centroids[i].cluster);
-    }
-   
-    std::vector<double> localRevArrX(k);
-    std::vector<double> localRevArrY(k);
-    std::vector<double> localRevArrZ(k);
-    std::vector<int> localRevArrCluster(k);
-    
-    int mySend = (myRank+1)%commSize;
-    int partner = (myRank-1+commSize)%commSize;
-
-    MPI_Sendrecv(localArrX.data(),k,MPI_DOUBLE,mySend,0,localRevArrX.data(),k,MPI_DOUBLE,partner,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    MPI_Sendrecv(localArrY.data(),k,MPI_DOUBLE,mySend,0,localRevArrY.data(),k,MPI_DOUBLE,partner,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    MPI_Sendrecv(localArrZ.data(),k,MPI_DOUBLE,mySend,0,localRevArrZ.data(),k,MPI_DOUBLE,partner,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    MPI_Sendrecv(localArrCluster.data(),k,MPI_INT,mySend,0,localRevArrCluster.data(),k,MPI_INT,partner,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-    
-    centroids = deserializePoint(&localRevArrX, &localRevArrY, &localRevArrZ,&localRevArrCluster,k);
   } 
 
   return points;
@@ -108,10 +86,13 @@ void kMeanDistribute(std::vector<Point>& points,std::vector<Point>& centroids,in
   std::vector<double> globalArrZ;
 
   if(myRank == 0){
-    for (const auto& p : points) {
-      globalArrX.push_back(p.x);
-      globalArrY.push_back(p.y);
-      globalArrZ.push_back(p.z);
+    globalArrX.resize(n);
+    globalArrY.resize(n);
+    globalArrZ.resize(n);
+    for (int i = 0; i < n; i++) {
+      globalArrX[i] = points[i].x;
+      globalArrY[i] = points[i].y;
+      globalArrZ[i] = points[i].z;
     }
   }
 
@@ -146,16 +127,16 @@ void kMeanDistribute(std::vector<Point>& points,std::vector<Point>& centroids,in
     std::cout << "Distributed CPU KMeans took " << (end - start) << " seconds." << std::endl;
   }
 
-  std::vector<double> localKArrX;
-  std::vector<double> localKArrY;
-  std::vector<double> localKArrZ;
-  std::vector<int> localKArrCluster;
+  std::vector<double> localKArrX(sendCount[myRank]);
+  std::vector<double> localKArrY(sendCount[myRank]);
+  std::vector<double> localKArrZ(sendCount[myRank]);
+  std::vector<int> localKArrCluster(sendCount[myRank]);
 
   for(int i = 0; i < sendCount[myRank]; i++){
-    localKArrX.push_back(localVec->at(i).x);
-    localKArrY.push_back(localVec->at(i).y);
-    localKArrZ.push_back(localVec->at(i).z);
-    localKArrCluster.push_back(localVec->at(i).cluster);
+    localKArrX[i] = localVec->at(i).x;
+    localKArrY[i] = localVec->at(i).y;
+    localKArrZ[i] = localVec->at(i).z;
+    localKArrCluster[i] = localVec->at(i).cluster;
   }
 
   int sizeVec = sendCount[myRank];

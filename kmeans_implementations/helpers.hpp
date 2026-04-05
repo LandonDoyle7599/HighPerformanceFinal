@@ -15,6 +15,7 @@ struct Point {
 
 struct Args {
     int k;
+    int epochs;
     std::string input_file;
     std::string output_dir;
     bool shared_cpu = false;

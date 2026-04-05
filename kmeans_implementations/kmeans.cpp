@@ -14,13 +14,19 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    MPI_Init(&argc, &argv);
-
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
     //read args for number of clusters
     Args args(argc, argv);
+
+    bool use_mpi = args.dist_cpu || args.dist_gpu;
+
+    if (use_mpi) {
+        MPI_Init(&argc, &argv);
+    }
+
+    int rank = 0;
+    if (use_mpi) {
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    }
 
     //read dataset and create point structs
     vector<Point> points = readData(args.input_file);
@@ -62,6 +68,9 @@ int main(int argc, char *argv[])
         //call distributed gpu implementation
     }
 
-    MPI_Finalize();
+    if (use_mpi) {
+        MPI_Finalize();
+    }
+
     return 0;
 }
