@@ -162,7 +162,8 @@ void writeFile(std::string fileName,std::vector<Point>*points){
 
 void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::string fileName, std::string output_dir){
   double start, finish;
-    int myRank, commSize;
+  int myRank, commSize;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
   MPI_Comm_size(MPI_COMM_WORLD, &commSize);
   
   std::string line;
@@ -265,6 +266,7 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
 
 void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileName, std::string output_dir){
   int myRank, commSize;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
   MPI_Comm_size(MPI_COMM_WORLD, &commSize);
   
   std::string line;
