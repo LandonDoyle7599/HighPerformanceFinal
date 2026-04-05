@@ -26,5 +26,5 @@ std::vector<Point> * kMeansClustering(std::vector<Point> * points, int epochs, i
 
 void writeFile(std::string fileName,std::vector<Point>*points);
 
-void kMeanDistributePerformance(int argc, char*argv[]);
-void kMeanDistribute(int argc, char*argv[]);
+void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::string fileName);
+void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileName);
