@@ -44,6 +44,7 @@ bool isNumber(std::string s){
 }
 
 std::tuple<double,double,double> readcsvPoint(std::string csv){
+  csv.erase( std::remove(csv.begin(), csv.end(), '\r'), csv.end() );
   std::stringstream lineStream(csv);
     int i = 0;
     std::string bit;
@@ -114,19 +115,7 @@ std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector
       c->y = sumY[clusterId] / nPoints[clusterId];
       c->z = sumZ[clusterId] / nPoints[clusterId];
     }
-     
-    std::vector<double> localArrX;
-    std::vector<double> localArrY;
-    std::vector<double> localArrZ;
-    std::vector<int> localArrCluster;
-    
-   
-    for(int i = 0; i < k; i++){
-      localArrX.push_back(centroids->at(i).x);
-      localArrY.push_back(centroids->at(i).y);
-      localArrZ.push_back(centroids->at(i).z);
-      localArrCluster.push_back(centroids.at(i).cluster);
-    }       
+            
   } 
   return points;
 }
