@@ -38,6 +38,9 @@ Load the necessary modules
 When running in the CHPC, if running a GPU implementation ensure a GPU has been allocated, and compile with the following 
 ` nvcc -ccbin mpicxx -Xcompiler -fopenmp ./kmeans_implementations/*.cpp ./kmeans_implementations/*.cu -o kmeans`
 
+If running an implementation that uses MPI this command is required for compatibility
+`export I_MPI_FABRICS=shm`
+
 The command to run all implementations sequentially on the CHPC is the following:
 ```bash
 mpirun -n <num_nodes> ./kmeans <k> <epochs> ./csvs/trimmed_track_features.csv ./csvs --shared_cpu <num_threads> --cuda_gpu --dist_cpu --dist_gpu
