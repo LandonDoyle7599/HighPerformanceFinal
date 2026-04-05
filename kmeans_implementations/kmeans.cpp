@@ -42,26 +42,26 @@ int main(int argc, char *argv[])
         //perform serial kmeans
         vector<Point> serial_points = points; //copy points for serial implementation
         vector<Point> serial_centroids = centroids; //copy centroids for serial implementation
-        performSerialKMeans(serial_points, 100, args.k, serial_centroids, args.output_dir);
+        performSerialKMeans(serial_points, args.epochs, args.k, serial_centroids, args.output_dir);
     } 
 
     if (args.shared_cpu && rank == 0) {
         //perform shared cpu kmeans
         vector<Point> shared_points = points; 
         vector<Point> shared_centroids = centroids; 
-        performSharedCPUKMeans(shared_points, 100, args.k, shared_centroids, args.output_dir, args.num_threads);
+        performSharedCPUKMeans(shared_points, args.epochs, args.k, shared_centroids, args.output_dir, args.num_threads);
     } 
 
     if (args.dist_cpu) {
         //call distributed cpu implementation WITH shared data
-        kMeanDistribute(points, centroids, 100, args.k, args.output_dir);
+        kMeanDistribute(points, centroids, args.epochs, args.k, args.output_dir);
     }
 
     if (args.cuda_gpu && rank == 0) {
         //call cuda gpu implementation
         vector<Point> gpu_points = points;
         vector<Point> gpu_centroids = centroids;
-        performSharedGPUKMeans(gpu_points, 100, args.k, gpu_centroids, args.output_dir);
+        performSharedGPUKMeans(gpu_points, args.epochs, args.k, gpu_centroids, args.output_dir);
     } 
 
     if (args.dist_gpu) {

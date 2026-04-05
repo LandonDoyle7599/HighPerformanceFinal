@@ -23,19 +23,20 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
     {
         
         for (int epoch = 0; epoch < epochs; ++epoch){
+            //reset local vectors for new epoch
             nPoints.assign(k, 0);
             sumX.assign(k, 0);
             sumY.assign(k, 0);
             sumZ.assign(k, 0);
 
-            #pragma omp single
+            #pragma omp single //reset global vectors for new epoch
             {
                 fill(nPointsGlobal.begin(), nPointsGlobal.end(), 0);
                 fill(sumXGlobal.begin(), sumXGlobal.end(), 0);
                 fill(sumYGlobal.begin(), sumYGlobal.end(), 0);
                 fill(sumZGlobal.begin(), sumZGlobal.end(), 0);
             }
-
+            //assign points to closest centroid
             #pragma omp for
             for (int i = 0; i < points.size(); ++i) {
                 Point& p = points[i];
@@ -48,6 +49,7 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
                 }
             }
 
+            //collect info on centroids
             #pragma omp for
             for (int i = 0; i < points.size(); ++i) {
                 Point& p = points[i];
@@ -56,7 +58,7 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
                 sumX[cluster] += p.x;
                 sumY[cluster] += p.y;
                 sumZ[cluster] += p.z;
-                p.minDist = DBL_MAX;
+                p.minDist = DBL_MAX; //reset minDist for next epoch
             }
 
             #pragma omp critical
@@ -69,8 +71,8 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
                 }
             }
             
-            #pragma omp barrier
-            #pragma omp single
+            #pragma omp barrier //ensure all threads have updated global vectors before updating centroids
+            #pragma omp single //update centroids
             {
                 for (int i = 0; i < k; ++i) {
                     if (nPointsGlobal[i] > 0) {
@@ -80,6 +82,7 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
                     }
                 }
             }
+            //implicit barrier from single
         }
     }
 }

@@ -38,19 +38,18 @@ Load the necessary modules
 When running in the CHPC, if running a GPU implementation ensure a GPU has been allocated, and compile with the following 
 ` nvcc -ccbin mpicxx -Xcompiler -fopenmp /kmeans_implementations/*.cpp /kmeans_implementations/*.cu -o kmeans`
 
-The command to run all implementations sequentially on the CHPC is
+The command to run all implementations sequentially on the CHPC is the following:
 ```bash
 mpirun -n <num_nodes> ./kmeans <k> <epochs> ./csvs/trimmed_track_features.csv ./csvs --shared_cpu <num_threads> --cuda_gpu --dist_cpu --dist_gpu
 ```
 
-Keep in mind that when running all the implementations simultaneously the <num_threads> arg for shared_cpu will be multiplied by the num_nodes argument. 
+*** NOTE *** : this method of running is not ideal and may harm the performance of each method. For scaling studies and best performance it is recommended to run one method at a time. In the following sections commands are given to run each implementation stand-alone. Compilation is the same for every method and that command can be seen above. Also, keep in mind that when running all the implementations simultaneously the <num_threads> arg for shared_cpu will be multiplied by the num_nodes argument. 
 
 ### Serial Implementation
 
 Example execution of serial implementation: 
 
 ```bash
-g++ -o /kmeans_implementations/*.cpp -o kmeans
 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs
 ```
 
@@ -59,7 +58,6 @@ g++ -o /kmeans_implementations/*.cpp -o kmeans
 Example execution of shared memory CPU implementation:
 
 ```bash
-g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu 8 --skip_serial
 ```
 
@@ -68,8 +66,15 @@ g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
 Example execution of CUDA GPU implementation:
 
 ```bash
-nvcc -o kmeans kmeans_implementations/*.cu kmeans_implementations/*.cpp 
 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --cuda-gpu --skip_serial
+```
+
+### Distributed CPU Implementation
+
+Example execution of Distributed CPU implementation:
+
+```bash
+mpirun -n 2 ./kemans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_cpu --skip_serial
 ```
 
 ## Python Utilities
