@@ -13,10 +13,10 @@ Because the centroids in the kmeans algorithm are randomly initialized, each imp
 from a single master file that shares the starting centroids between implementations.
 
 ### Load CHPC Modules
-` module load gcc cuda intel-mpi cmake python`
+` module load gcc cuda intel-mpi cmake `
 
 When running in the CHPC, if running a GPU implementation ensure a GPU has been allocated, and compile with the following 
-` nvcc /kmeans_implementations/*.cpp /kmeans_implementations/*.cu -Xcompiler -fopenmp -ccbin mpicxx -o kmeans`
+` nvcc /kmeans_implementations/*.cpp /kmeans_implementations/*.cu -Xcompiler -fopenmp -ccbin mpicxx -o kmeans` #TODO: make sure this works for every implementation
 
 ### Program Arguments
 
@@ -50,6 +50,13 @@ Example execution of shared memory CPU implementation:
 ```bash
 g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
 ./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu 8 --skip_serial
+```
+### CPU Distribute Implementation
+Example execution of CPU Distribute implementation:
+
+```bash
+mpic++  kMeanCPUDistribute.cpp helpers.cpp kmeans.cpp -o kmeans
+mpirun -np 2 ./kmeans 5 ./csvs/trimmed_track_features.csv ./csvs --dist-cpu
 ```
 
 ## Python Utilities
