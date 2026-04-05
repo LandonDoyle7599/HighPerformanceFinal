@@ -15,7 +15,10 @@ int main(int argc, char const *argv[])
 {
     //read args for number of clusters
     Args args(argc, argv);
-    
+    if (args.dist_cpu) {
+        kMeanDistribute(argc,argv,100,arg.k,args.input_file);
+        return 0;
+    } 
     //read dataset and create point structs
     vector<Point> points = readData(args.input_file);
 
@@ -42,9 +45,7 @@ int main(int argc, char const *argv[])
         //call cuda gpu implementation
 
     } 
-    if (args.dist_cpu) {
-        //call distributed cpu implementation
-    } 
+
     if (args.dist_gpu) {
         //call distributed gpu implementation
     }

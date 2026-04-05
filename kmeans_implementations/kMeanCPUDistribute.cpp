@@ -52,15 +52,15 @@ std::tuple<double,double,double> readcsvPoint(std::string csv){
     while(std::getline(lineStream, bit,',')){
       if(isNumber(bit)){
 	switch(i){
-	case 2:
+	case 0:
 
 	  x = std::stof(bit);
 	  break;
-	case 3:
+	case 1:
 
 	  y = std::stof(bit);
 	  break;
-	case 10:
+	case 2:
 
 	  z = std::stof(bit);
 	  break;
@@ -160,7 +160,7 @@ void writeFile(std::string fileName,std::vector<Point>*points){
   myfile.close();
 }
 
-void kMeanDistributePerformance(int argc, char*argv[]){
+void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::string fileName){
   double start, finish;
     int myRank, commSize;
   MPI_Init(&argc,&argv);
@@ -168,7 +168,7 @@ void kMeanDistributePerformance(int argc, char*argv[]){
   MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
   
   std::string line;
-  std::ifstream file("tracks_features.csv");
+  std::ifstream file(fileName);
   
   int * sendCount = new int[commSize];
   int * displs = new int[commSize];
@@ -213,7 +213,7 @@ void kMeanDistributePerformance(int argc, char*argv[]){
   finish = MPI_Wtime();
   if(myRank == 0)
     printf("Elasped time = %e secounds", finish-start);
-  std::vector<Point> * localVec = kMeansClustering(&pointVec, 100, 5,sendCount[myRank],myRank,commSize);
+  std::vector<Point> * localVec = kMeansClustering(&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
   
   std::vector<double> localKArrX;
   std::vector<double> localKArrY;
@@ -266,14 +266,14 @@ void kMeanDistributePerformance(int argc, char*argv[]){
 
 }
 
-void kMeanDistribute(int argc, char*argv[]){
+void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileName){
   int myRank, commSize;
   MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD, &commSize);
   MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
   
   std::string line;
-  std::ifstream file("tracks_features.csv");
+  std::ifstream file(fileName);
   
   int * sendCount = new int[commSize];
   int * displs = new int[commSize];
@@ -314,7 +314,7 @@ void kMeanDistribute(int argc, char*argv[]){
   MPI_Scatterv(globalArrZ.data(),sendCount,displs, MPI_DOUBLE, localArrZ.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
 
   std::vector<Point> pointVec = deserializePoint(&localArrX, &localArrY, &localArrZ,sendCount[myRank]);
-  std::vector<Point> * localVec = kMeansClustering(&pointVec, 100, 5,sendCount[myRank],myRank,commSize);
+  std::vector<Point> * localVec = kMeansClustering(&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
   
   std::vector<double> localKArrX;
   std::vector<double> localKArrY;
