@@ -185,6 +185,7 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
       globalArrY.push_back(std::get<1>(result));
       globalArrZ.push_back(std::get<2>(result)); 
     }
+    
       n = globalArrX.size();
   }
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -206,14 +207,14 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
   MPI_Scatterv(globalArrX.data(),sendCount,displs, MPI_DOUBLE, localArrX.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
   MPI_Scatterv(globalArrY.data(),sendCount,displs, MPI_DOUBLE, localArrY.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
   MPI_Scatterv(globalArrZ.data(),sendCount,displs, MPI_DOUBLE, localArrZ.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
-  start = MPI_Wtime();
+
   std::vector<Point> pointVec = deserializePoint(&localArrX, &localArrY, &localArrZ,sendCount[myRank]);
-  MPI_Barrier(MPI_COMM_WORLD);
+  start = MPI_Wtime();
+  std::vector<Point> * localVec = kMeansClustering(&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
+    MPI_Barrier(MPI_COMM_WORLD);
   finish = MPI_Wtime();
   if(myRank == 0)
     printf("Elasped time = %e secounds", finish-start);
-  std::vector<Point> * localVec = kMeansClustering(&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
-  
   std::vector<double> localKArrX;
   std::vector<double> localKArrY;
   std::vector<double> localKArrZ;
