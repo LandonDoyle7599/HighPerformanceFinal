@@ -21,7 +21,7 @@ bool isNumber(std::string s);
 
 std::tuple<double,double,double> readcsvPoint(std::string csv);
 
-std::vector<Point> * kMeansClustering(std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize);
+std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize);
 
 
 void writeFile(std::string fileName,std::vector<Point>*points);
