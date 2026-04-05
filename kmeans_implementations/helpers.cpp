@@ -48,7 +48,7 @@ Args::Args(int argc, char *argv[]) {
 
 void writeOutput(vector<Point>& points, const string& filename) {
     std::string buffer;
-    buffer.reserve(points.size() * 50); // preallocate
+    buffer.reserve(points.size() * 50);
 
     for (const auto& p : points) {
         buffer += std::to_string(p.x) + "," +
