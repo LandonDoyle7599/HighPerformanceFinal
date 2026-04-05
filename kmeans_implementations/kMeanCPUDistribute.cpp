@@ -73,7 +73,7 @@ std::tuple<double,double,double> readcsvPoint(std::string csv){
 
 std::vector<Point> * kMeansClustering(std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize){
   std::vector<Point> centroids;
-  srand(time(0));
+  srand(0);
   for(int i = 0; i < k; i++){
     centroids.push_back(points->at(rand() % points->size()));
   }
@@ -160,12 +160,10 @@ void writeFile(std::string fileName,std::vector<Point>*points){
   myfile.close();
 }
 
-void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::string fileName){
+void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::string fileName, std::string output_dir){
   double start, finish;
     int myRank, commSize;
-  MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD, &commSize);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
   
   std::string line;
   std::ifstream file(fileName);
@@ -255,9 +253,8 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
   if(myRank == 0){
     std::vector<Point> rankZeroPoints =  deserializePoint(&globalKArrX,&globalKArrY,&globalKArrZ,&globalKArrCluster, n);
     
-    writeFile("output.csv", &rankZeroPoints);
+    writeFile(output_dir + "/dist_cpu_output.csv", &rankZeroPoints);
   }  
-  MPI_Finalize();
   
   delete[] sendCount;
   delete[] displs;
@@ -266,11 +263,9 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
 
 }
 
-void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileName){
+void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileName, std::string output_dir){
   int myRank, commSize;
-  MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD, &commSize);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myRank);
   
   std::string line;
   std::ifstream file(fileName);
@@ -356,9 +351,8 @@ void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileNa
   if(myRank == 0){
     std::vector<Point> rankZeroPoints =  deserializePoint(&globalKArrX,&globalKArrY,&globalKArrZ,&globalKArrCluster, n);
     
-    writeFile("output.csv", &rankZeroPoints);
+    writeFile(output_dir + "/dist_cpu_output.csv", &rankZeroPoints);
   }  
-  MPI_Finalize();
   
   delete[] sendCount;
   delete[] displs;

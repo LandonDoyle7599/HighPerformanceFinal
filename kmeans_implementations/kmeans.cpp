@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
     if (args.dist_cpu) {
         //call distributed cpu implementation WITH shared data
-        kMeanDistribute(points, centroids, args.epochs, args.k, args.output_dir);
+        kMeanDistribute(argc, argv, args.epochs, args.k, args.input_file, args.output_dir);
     }
 
     if (args.cuda_gpu && rank == 0) {
