@@ -1,4 +1,4 @@
-#include "kMeanCPUDistribute.h"
+#include "kMeanCPUDistribute.hpp"
 
 
 std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double>* vecY,std::vector<double>* vecZ, int n){
