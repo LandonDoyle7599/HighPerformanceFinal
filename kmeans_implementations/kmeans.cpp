@@ -5,6 +5,7 @@
 #include "helpers.hpp"
 #include "serial.hpp"
 #include "shared_cpu.hpp"
+#include "shared_gpu.hpp"
 #include "kMeanCPUDistribute.hpp"
 using namespace std;
 
@@ -52,6 +53,9 @@ int main(int argc, char *argv[])
 
     if (args.cuda_gpu && rank == 0) {
         //call cuda gpu implementation
+        vector<Point> gpu_points = points;
+        vector<Point> gpu_centroids = centroids;
+        performSharedGPUKMeans(gpu_points, 100, args.k, gpu_centroids, args.output_dir);
     } 
 
     if (args.dist_gpu) {

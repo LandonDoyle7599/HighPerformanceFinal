@@ -97,7 +97,7 @@ void performSharedCPUKMeans(vector<Point>& points, int epochs,  int k, vector<Po
     auto end_time = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end_time - start_time;
     cout << "SharedCPUKMeans clustering with " << k << " clusters and " << num_threads << " threads took " << elapsed.count() << " seconds." << endl;
-    writeOutput(points, output_dir + "shared_cpu_output.csv");
+    writeOutput(points, output_dir + "/shared_cpu_output.csv");
 }
 
 
