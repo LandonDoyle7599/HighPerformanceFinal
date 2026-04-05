@@ -16,7 +16,7 @@ double Point::distance(const Point& p) const {
            (z - p.z)*(z - p.z);
 }
 
-Args::Args(int argc, char const *argv[]) {
+Args::Args(int argc, char *argv[]) {
     if (argc >= 4) {
         k = atoi(argv[1]);
         input_file = argv[2];
