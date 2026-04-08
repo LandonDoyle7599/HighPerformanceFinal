@@ -9,6 +9,7 @@
 #include <mpi.h>
 #include <string>
 #include <tuple>
+#include <algorithm>
 
 std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double>* vecY,std::vector<double>* vecZ, int n);
 
@@ -21,7 +22,7 @@ bool isNumber(std::string s);
 
 std::tuple<double,double,double> readcsvPoint(std::string csv);
 
-std::vector<Point> * kMeansClustering(std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize);
+std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize);
 
 
 void writeFile(std::string fileName,std::vector<Point>*points);
