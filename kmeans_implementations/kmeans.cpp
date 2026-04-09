@@ -6,6 +6,7 @@
 #include "serial.hpp"
 #include "shared_cpu.hpp"
 #include "shared_gpu.hpp"
+#include "distributed_gpu.hpp"
 using namespace std;
 
 
@@ -42,13 +43,16 @@ int main(int argc, char const *argv[])
         //call cuda gpu implementation
         vector<Point> gpu_points = points;
         vector<Point> gpu_centroids = centroids;
-        performSharedGPUKMeans(gpu_points, 100, args.k, gpu_centroids, args.output_dir);
+        performSharedGPUKMeans(gpu_points, 100, args.k, gpu_centroids, args.output_dir, args.num_threads);
     } 
     if (args.dist_cpu) {
         //call distributed cpu implementation
     } 
     if (args.dist_gpu) {
         //call distributed gpu implementation
+        vector<Point> dist_gpu_points = points
+        vector<Point> dist_gpu_centroids = centroids;
+        performDistributedGPUKMeans(dist_gpu_points, 100, args.k, dist_gpu_centroids, args.output_dir,args.num_threads);
     }
     return 0;
 }

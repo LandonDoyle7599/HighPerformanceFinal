@@ -57,6 +57,17 @@ Example execution of CUDA GPU implementation:
 ```bash
 nvcc -o kmeans kmeans_implementations/*.cu kmeans_implementations/*.cpp 
 ./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --cuda-gpu
+Enter the number of threads per block for shared GPU execution: 256
+```
+
+###  Distributed GPU Implementation
+
+Example execution of  Distributed GPU implementation:
+
+```bash
+nvcc -o kmeans kmeans_implementations/*.cu kmeans_implementations/*.cpp 
+./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --dist-gpu
+Enter the number of threads per block for distributed GPU execution: 256
 ```
 
 ## Python Utilities

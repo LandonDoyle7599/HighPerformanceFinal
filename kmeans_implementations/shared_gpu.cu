@@ -16,21 +16,21 @@ do { \
     } \
 }while(0)
 
-__global__ void assignClusters(double* point_x, double* point_y, double* point_z,
+__global__ void assignClusters(float* point_x, float* point_y, float* point_z,
     int* cluster,
-    double* centroid_x, double* centroid_y, double* centroid_z,
+    float* centroid_x, float* centroid_y, float* centroid_z,
     int k, int n)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= n) return;
-    double minDist = DBL_MAX;
+    float minDist = FLT_MAX;
     int bestCluster = -1;
 
     for (int j = 0; j < k; j++) {
-        double dist_x = point_x[i] - centroid_x[j];
-        double dist_y = point_y[i] - centroid_y[j];
-        double dist_z = point_z[i] - centroid_z[j];
-        double dist = dist_x * dist_x + dist_y * dist_y + dist_z * dist_z;
+        float dist_x = point_x[i] - centroid_x[j];
+        float dist_y = point_y[i] - centroid_y[j];
+        float dist_z = point_z[i] - centroid_z[j];
+        float dist = dist_x * dist_x + dist_y * dist_y + dist_z * dist_z;
         if (dist < minDist) {
             minDist = dist;
             bestCluster = j;
@@ -38,7 +38,7 @@ __global__ void assignClusters(double* point_x, double* point_y, double* point_z
     }
     cluster[i] = bestCluster;
 }
-__global__ void resetArrays(double* sumX, double* sumY, double* sumZ,int* counts, int k)
+__global__ void resetArrays(float* sumX, float* sumY, float* sumZ,int* counts, int k)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < k) {
@@ -48,14 +48,14 @@ __global__ void resetArrays(double* sumX, double* sumY, double* sumZ,int* counts
         counts[i] = 0;
     }
 }
-__global__ void accumCentroids(double* x, double* y, double* z, int* clusters,
-    double* sumX, double* sumY, double* sumZ, int* counts, int n, int k)
+__global__ void accumCentroids(float* x, float* y, float* z, int* clusters,
+    float* sumX, float* sumY, float* sumZ, int* counts, int n, int k)
 {
     extern __shared__ char shared[];
     
-    double* s_sumX =(double*)shared;
-    double* s_sumY = (double*)&s_sumX[k];
-    double* s_sumZ = (double*)&s_sumY[k];
+    float* s_sumX =(float*)shared;
+    float* s_sumY = (float*)&s_sumX[k];
+    float* s_sumZ = (float*)&s_sumY[k];
     int* s_counts = (int*)&s_sumZ[k];
     
     int tid = threadIdx.x;
@@ -88,8 +88,8 @@ __global__ void accumCentroids(double* x, double* y, double* z, int* clusters,
         atomicAdd(&counts[j], s_counts[j]);
     }
 }
-__global__ void updateCentroids(double* centroid_x, double* centroid_y, double* centroid_z,
-    double* sumX, double* sumY, double* sumZ, int* counts, int k)
+__global__ void updateCentroids(float* centroid_x, float* centroid_y, float* centroid_z,
+    float* sumX, float* sumY, float* sumZ, int* counts, int k)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < k && counts[i] > 0) {
@@ -99,12 +99,12 @@ __global__ void updateCentroids(double* centroid_x, double* centroid_y, double* 
     }
 }
 //timer funct to press use all the functions.
-void performSharedGPUKMeans(vector<Point>& points, int epochs, int k,vector<Point>& centroids,
-                            const string& output_dir) {
+void performSharedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
+                            const string& output_dir, int threadsInBlock) {
     
     auto start_time = chrono::high_resolution_clock::now();
 
-    performGPUKmeans(points, k, epochs, centroids);
+    performGPUKmeans(points, k, epochs, centroids, threadsInBlock);
 
     auto end_time = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end_time - start_time;
@@ -115,16 +115,16 @@ void performSharedGPUKMeans(vector<Point>& points, int epochs, int k,vector<Poin
 
     writeOutput(points, output_dir + "/shared_gpu_output.csv");
 }
-void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& centroids) {
+void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& centroids, int threadsInBlock) {
     //so many vars
     int n = points.size();
-    vector<double> cpu_x(n);
-    vector<double> cpu_y(n);
-    vector<double> cpu_z(n);
+    vector<float> cpu_x(n);
+    vector<float> cpu_y(n);
+    vector<float> cpu_z(n);
     vector<int> cpu_clusters(n);
-    vector<double> cpu_centroid_x(k);
-    vector<double> cpu_centroid_y(k);
-    vector<double> cpu_centroid_z(k);
+    vector<float> cpu_centroid_x(k);
+    vector<float> cpu_centroid_y(k);
+    vector<float> cpu_centroid_z(k);
     //convert from pointer
     for (int i = 0; i < k; i++) {
         cpu_centroid_x[i] = centroids[i].x;
@@ -138,48 +138,47 @@ void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& c
         cpu_z[i] = points[i].z;
     }
     //GPU versions of data
-    double *gpu_x;
-    double *gpu_y;
-    double *gpu_z;
+    float *gpu_x;
+    float *gpu_y;
+    float *gpu_z;
     int *gpu_clusters;
 
-    double *gpu_centroid_x;
-    double *gpu_centroid_y;
-    double *gpu_centroid_z;
+    float *gpu_centroid_x;
+    float *gpu_centroid_y;
+    float *gpu_centroid_z;
 
-    double *gpu_sum_x;
-    double *gpu_sum_y;
-    double *gpu_sum_z;
+    float *gpu_sum_x;
+    float *gpu_sum_y;
+    float *gpu_sum_z;
     int *gpu_counts;
     //allocating them
-    CUDA_CHECK(cudaMalloc(&gpu_x, n * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&gpu_y, n * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&gpu_z, n * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&gpu_x, n * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&gpu_y, n * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&gpu_z, n * sizeof(float)));
     CUDA_CHECK(cudaMalloc(&gpu_clusters, n * sizeof(int)));
 
-    CUDA_CHECK(cudaMalloc(&gpu_centroid_x, k * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&gpu_centroid_y, k * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&gpu_centroid_z, k * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&gpu_centroid_x, k * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&gpu_centroid_y, k * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&gpu_centroid_z, k * sizeof(float)));
 
-    CUDA_CHECK(cudaMalloc(&gpu_sum_x, k * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&gpu_sum_y, k * sizeof(double)));
-    CUDA_CHECK(cudaMalloc(&gpu_sum_z, k * sizeof(double)));
+    CUDA_CHECK(cudaMalloc(&gpu_sum_x, k * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&gpu_sum_y, k * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&gpu_sum_z, k * sizeof(float)));
 
     CUDA_CHECK(cudaMalloc(&gpu_counts, k * sizeof(int)));
     //memcopy
-    CUDA_CHECK(cudaMemcpy(gpu_x, cpu_x.data(), n * sizeof(double), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(gpu_y, cpu_y.data(), n * sizeof(double), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(gpu_z, cpu_z.data(), n * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(gpu_x, cpu_x.data(), n * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(gpu_y, cpu_y.data(), n * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(gpu_z, cpu_z.data(), n * sizeof(float), cudaMemcpyHostToDevice));
 
-    CUDA_CHECK(cudaMemcpy(gpu_centroid_x, cpu_centroid_x.data(), k * sizeof(double), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(gpu_centroid_y, cpu_centroid_y.data(), k * sizeof(double), cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(gpu_centroid_z, cpu_centroid_z.data(), k * sizeof(double), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(gpu_centroid_x, cpu_centroid_x.data(), k * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(gpu_centroid_y, cpu_centroid_y.data(), k * sizeof(float), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(gpu_centroid_z, cpu_centroid_z.data(), k * sizeof(float), cudaMemcpyHostToDevice));
 
     //threads, blocks and share memory
-    int threadsInBlock = 256;
     int numBlocks = (n + threadsInBlock - 1) / threadsInBlock;
     int numBlocksK= (k + threadsInBlock - 1) / threadsInBlock;
-    int sharedMemSize = (3 * k * sizeof(double)) + (k * sizeof(int));
+    int sharedMemSize = (3 * k * sizeof(float)) + (k * sizeof(int));
    for (int epoch = 0; epoch < epochs; epoch++) {
 
        assignClusters<<<numBlocks, threadsInBlock>>>(gpu_x, gpu_y, gpu_z,gpu_clusters,
@@ -207,9 +206,9 @@ void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& c
         points[i].cluster = cpu_clusters[i];
     }
     
-    CUDA_CHECK(cudaMemcpy(cpu_centroid_x.data(), gpu_centroid_x, k * sizeof(double), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(cpu_centroid_y.data(), gpu_centroid_y, k * sizeof(double), cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(cpu_centroid_z.data(), gpu_centroid_z, k * sizeof(double), cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(cpu_centroid_x.data(), gpu_centroid_x, k * sizeof(float), cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(cpu_centroid_y.data(), gpu_centroid_y, k * sizeof(float), cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(cpu_centroid_z.data(), gpu_centroid_z, k * sizeof(float), cudaMemcpyDeviceToHost));
 
     for (int i = 0; i < k; i++) {
         centroids[i].x = cpu_centroid_x[i];
@@ -229,4 +228,3 @@ void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& c
     cudaFree(gpu_sum_z);
     cudaFree(gpu_counts);
 }
-
