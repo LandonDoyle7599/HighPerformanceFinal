@@ -100,6 +100,42 @@ __global__ void updateCentroids(float* centroid_x, float* centroid_y, float* cen
         centroid_z[i] = sumZ[i]/counts[i];
     }
 }
+//cuda wrappers
+void cudaAssignClusters(float* point_x, float* point_y, float* point_z,
+                                   int* cluster,
+                                   float* centroid_x, float* centroid_y, float* centroid_z,
+                                   int k, int n,int threadsPerBlock)
+{
+    
+    int blocks = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+    assignClusters<<<blocks, threadsPerBlock>>>(point_x, point_y, point_z, cluster,
+                                                centroid_x, centroid_y, centroid_z, k, n);
+    cudaDeviceSynchronize();
+}
+
+// Wrapper 2: resetArrays
+void cudaResetArrays(float* sumX, float* sumY, float* sumZ, int* counts, int k,int threadsPerBlock)
+{
+    
+    int blocks = (k + threadsPerBlock - 1) / threadsPerBlock;
+
+    resetArrays<<<blocks, threadsPerBlock>>>(sumX, sumY, sumZ, counts, k);
+    cudaDeviceSynchronize();
+}
+
+// Wrapper 3: accumCentroids
+void cudaAccumCentroids(float* x, float* y, float* z, int* clusters,
+                                   float* sumX, float* sumY, float* sumZ, int* counts,
+                                   int n, int k, int threadsPerBlock)
+{
+    int blocks = (n + threadsPerBlock - 1) / threadsPerBlock;
+    size_t sharedMemSize = 3 * k * sizeof(float) + k * sizeof(int);
+
+    accumCentroids<<<blocks, threadsPerBlock, sharedMemSize>>>(x, y, z, clusters,
+                                                         sumX, sumY, sumZ, counts, n, k);
+    cudaDeviceSynchronize();
+}
 //timer funct to press use all the functions.
 void performSharedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
                             const string& output_dir, int threadsInBlock) {

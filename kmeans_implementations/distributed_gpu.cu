@@ -12,14 +12,7 @@
 std::mutex mtx;
 using std::vector;
 
-#define CUDA_CHECK(call) \
-do { \
-    cudaError_t err = call; \
-    if(err != cudaSuccess){ \
-        std::cerr << "CUDA Error: " << cudaGetErrorString(err) << std::endl; \
-        exit(1); \
-    } \
-} while(0)
+
 
 void performDistributedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
 const std::string& output_dir, int threadsPerBlock
@@ -143,8 +136,8 @@ const std::string& output_dir, int threadsPerBlock
 
                 int threads = threadsPerBlock;
                 int numBlocks = (localsize + threads - 1) / threads;  // Fix 'size' to 'localsize'
-                int numBlocksK = (k + threads - 1) / threads; // Needed for kernel launch with k centroids
-                int sharedMemSize = (3 * k * sizeof(float)) + (k * sizeof(int));  // Calculate shared memory size
+                
+                
 
                 float* d_x = gpuX[device];
                 float* d_y = gpuY[device];
@@ -159,15 +152,14 @@ const std::string& output_dir, int threadsPerBlock
                 int* d_counts = gpu_counts[device];
 
                 // Call kernel
-                assignClusters<<<numBlocks, threads>>>(d_x, d_y, d_z, d_clusters, d_centroidX, d_centroidY, d_centroidZ, k, localsize);
-                CUDA_CHECK(cudaGetLastError());
+                // Assign clusters
+                cudaAssignClusters(d_x, d_y, d_z, d_clusters, d_centroidX, d_centroidY, d_centroidZ, k, localsize, threadsPerBlock);
 
-                resetArrays<<<numBlocksK, threads>>>(d_sumX, d_sumY, d_sumZ, d_counts, k);
-                CUDA_CHECK(cudaGetLastError());
+                // Reset arrays
+                cudaResetArrays(d_sumX, d_sumY, d_sumZ, d_counts, k,threadsPerBlock);
 
-                accumCentroids<<<numBlocks, threads, sharedMemSize>>>(d_x, d_y, d_z, d_clusters, d_sumX, d_sumY, d_sumZ, d_counts, localsize, k);
-                CUDA_CHECK(cudaGetLastError());
-
+                // Accumulate centroids
+                cudaAccumCentroids(d_x, d_y, d_z, d_clusters, d_sumX, d_sumY, d_sumZ, d_counts, localsize, k, threadsPerBlock);
                 cudaDeviceSynchronize();
             });
         }
