@@ -43,16 +43,16 @@ int main(int argc, char const *argv[])
         //call cuda gpu implementation
         vector<Point> gpu_points = points;
         vector<Point> gpu_centroids = centroids;
-        performSharedGPUKMeans(gpu_points, 100, args.k, gpu_centroids, args.output_dir, args.num_threads);
+        performSharedGPUKMeans(gpu_points, 100, args.k, gpu_centroids, args.output_dir, args.threadsPerBlockCuda);
     } 
     if (args.dist_cpu) {
         //call distributed cpu implementation
     } 
     if (args.dist_gpu) {
         //call distributed gpu implementation
-        vector<Point> dist_gpu_points = points
+        vector<Point> dist_gpu_points = points;
         vector<Point> dist_gpu_centroids = centroids;
-        performDistributedGPUKMeans(dist_gpu_points, 100, args.k, dist_gpu_centroids, args.output_dir,args.num_threads);
+        performDistributedGPUKMeans(dist_gpu_points, 100, args.k, dist_gpu_centroids, args.output_dir, args.threadsPerBlockDist);
     }
     return 0;
 }

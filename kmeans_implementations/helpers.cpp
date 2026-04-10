@@ -35,10 +35,21 @@ Args::Args(int argc, char const *argv[]) {
                     i++;
                 }
             }
-            
-            else if (flag == "--cuda_gpu") cuda_gpu = true; //add onto this for any additional args
+            else if (flag == "--cuda_gpu"){
+                 cuda_gpu = true;
+                 if (i + 1 < argc){
+                    threadsPerBlockCuda = atoi(argv[i + 1]);
+                    i++;
+                 }
+            }      
             else if (flag == "--dist_cpu") dist_cpu = true; //add onto this for any additional args
-            else if (flag == "--dist_gpu") dist_gpu = true; //add onto this for any additional args
+            else if (flag == "--dist_gpu"){
+                dist_gpu = true;
+                if (i + 1 < argc){
+                    threadsPerBlockDist = atoi(argv[i+1]);
+                    i++;
+                }
+            }
         }
     } else {
         throw invalid_argument("Usage: <number_of_clusters> <input_file> <output_dir> [--shared_cpu <num_threads>] [--cuda_gpu] [--dist_cpu] [--dist_gpu] [--skip_serial]");

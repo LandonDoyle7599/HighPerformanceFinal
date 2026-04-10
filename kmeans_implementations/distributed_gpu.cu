@@ -8,6 +8,7 @@
 #include "helpers.hpp"
 #include "distributed_gpu.hpp"
 #include "shared_gpu.hpp"
+using namespace std;
 std::mutex mtx;
 
 void performDistributedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,

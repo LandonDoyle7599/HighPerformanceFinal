@@ -19,6 +19,8 @@ struct Args {
     std::string output_dir;
     bool shared_cpu = false;
     int num_threads = 1;
+    int threadsPerBlockDist = 256;
+    int threadsPerBlockCuda = 256;
     bool cuda_gpu = false;
     bool dist_cpu = false;
     bool dist_gpu = false;
