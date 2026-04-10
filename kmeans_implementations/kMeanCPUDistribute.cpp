@@ -33,45 +33,6 @@ std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double
   return points;
 }
 
-bool isNumber(std::string s){
-  if(s == "")
-    return false;
-  for(auto& c : s){
-    if(!std::isdigit(c) && c != '.' && c !='-' && c !='E')
-      return false;
-  }
-  return true;
-}
-
-std::tuple<double,double,double> readcsvPoint(std::string csv){
-  csv.erase( std::remove(csv.begin(), csv.end(), '\r'), csv.end() );
-  std::stringstream lineStream(csv);
-    int i = 0;
-    std::string bit;
-    double x,y,z;
-
-    while(std::getline(lineStream, bit,',')){
-      if(isNumber(bit)){
-	switch(i){
-	case 0:
-
-	  x = std::stof(bit);
-	  break;
-	case 1:
-
-	  y = std::stof(bit);
-	  break;
-	case 2:
-
-	  z = std::stof(bit);
-	  break;
-	}
-	i++;     
-      }
-    }
-    return std::make_tuple(x,y,z);
-}
-
 std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize){
 
   
@@ -80,13 +41,13 @@ std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector
     for(std::vector<Point>::iterator c = begin(*centroids); c != end(*centroids); ++c){
       int clusterId = c - begin(*centroids);
       for(int it = 0; it < mySize; it++){
-	Point p = points->at(it);
-	double dist = c->distance(p);
-	if(dist < p.minDist){
-	  p.minDist = dist;
-	  p.cluster = clusterId;
-	}
-	points->at(it) = p;
+        Point p = points->at(it);
+        double dist = c->distance(p);
+        if(dist < p.minDist){
+          p.minDist = dist;
+          p.cluster = clusterId;
+        }
+        points->at(it) = p;
       }
     }
     
@@ -108,29 +69,27 @@ std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector
 
       points->at(it).minDist = __DBL_MAX__;
     }
+
+    std::vector<int> globalNPoints(k);
+    std::vector<double> globalSumX(k), globalSumY(k), globalSumZ(k);
+
+    MPI_Allreduce(nPoints.data(), globalNPoints.data(), k, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(sumX.data(), globalSumX.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(sumY.data(), globalSumY.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(sumZ.data(), globalSumZ.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     
     for (std::vector<Point>::iterator c = begin(*centroids); c != end(*centroids); ++c) {
       int clusterId = c - std::begin(*centroids);
-      c->x = sumX[clusterId] / nPoints[clusterId];
-      c->y = sumY[clusterId] / nPoints[clusterId];
-      c->z = sumZ[clusterId] / nPoints[clusterId];
+      c->x = globalSumX[clusterId] / globalNPoints[clusterId];
+      c->y = globalSumY[clusterId] / globalNPoints[clusterId];
+      c->z = globalSumZ[clusterId] / globalNPoints[clusterId];
     }
             
   } 
   return points;
 }
-void writeFile(std::string fileName,std::vector<Point>*points){
-  std::ofstream myfile;
-  myfile.open(fileName);
-  myfile << "x,y,z,c" << std::endl;
-  
-  for (std::vector<Point>::iterator it = points->begin(); it != points->end(); ++it) {
-    myfile << it->x << "," << it->y << "," << it->z << "," << it->cluster << std::endl;
-  }
-  myfile.close();
-}
 
-void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::string fileName, std::string output_dir){
+void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::string fileName, std::string output_dir, std::vector<Point>& centroids, std::vector<Point>& points){  
   double start, finish;
   int myRank, commSize;
   MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
@@ -154,23 +113,17 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
 
   
   if(myRank == 0){
-    std::getline(file,line);
-
-    while(std::getline(file,line)){
-      auto result = readcsvPoint(line);
-      globalArrX.push_back(std::get<0>(result));
-      globalArrY.push_back(std::get<1>(result));
-      globalArrZ.push_back(std::get<2>(result)); 
+    n = points.size();
+    for (int i = 0; i < n; i++) {
+        globalArrX.push_back(points[i].x);
+        globalArrY.push_back(points[i].y);
+        globalArrZ.push_back(points[i].z);
     }
-    n = globalArrX.size();
-    srand(time(0));
-    for(int i = 0; i < k; i++){
-      globalCX[i] = globalArrX[rand() % n];
-      globalCY[i] = globalArrY[rand() % n];
-      globalCZ[i] = globalArrZ[rand() % n];
+    for (int i = 0; i < k; i++) {
+        globalCX[i] = centroids[i].x;
+        globalCY[i] = centroids[i].y;
+        globalCZ[i] = centroids[i].z;
     }
-    
-
   }
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(globalCX.data(), k, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -201,7 +154,7 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
     MPI_Barrier(MPI_COMM_WORLD);
   finish = MPI_Wtime();
   if(myRank == 0)
-    printf("Elasped time = %e secounds", finish-start);
+    std::cout << "DistCPUKMeans clustering with " << k << " clusters and " << commSize << " nodes took " << finish - start << " seconds." << std::endl;
   std::vector<double> localKArrX;
   std::vector<double> localKArrY;
   std::vector<double> localKArrZ;
@@ -241,126 +194,12 @@ void kMeanDistributePerformance(int argc, char*argv[],int epochs, int k, std::st
 
   if(myRank == 0){
     std::vector<Point> rankZeroPoints =  deserializePoint(&globalKArrX,&globalKArrY,&globalKArrZ,&globalKArrCluster, n);
-    
-    writeFile(output_dir + "/dist_cpu_output.csv", &rankZeroPoints);
+    writeOutput(rankZeroPoints, output_dir + "/dist_cpu_output.csv");
   }  
   
   delete[] sendCount;
   delete[] displs;
   delete[] revIntCount;
   delete[] finalDispls;
-
-}
-
-void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileName, std::string output_dir){
-  int myRank, commSize;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-  MPI_Comm_size(MPI_COMM_WORLD, &commSize);
-  
-  std::string line;
-  std::ifstream file(fileName);
-  
-  int * sendCount = new int[commSize];
-  int * displs = new int[commSize];
-  int sum = 0;
-  int n = 0;
-  std::vector<Point> localPointArr;
-  std::vector<double> globalArrX;
-  std::vector<double> globalArrY;
-  std::vector<double> globalArrZ;
-
-  std::vector<double> globalCX(k, 0);
-  std::vector<double> globalCY(k, 0);
-  std::vector<double> globalCZ(k, 0);
-  std::getline(file,line);
-  if(myRank == 0){
-    while(std::getline(file,line)){
-      auto result = readcsvPoint(line);
-      globalArrX.push_back(std::get<0>(result));
-      globalArrY.push_back(std::get<1>(result));
-      globalArrZ.push_back(std::get<2>(result)); 
-    }
-      n = globalArrX.size();
-      srand(time(0));
-      for(int i = 0; i < k; i++){
-        int index = rand() % n;
-        globalCX[i] = globalArrX[index];
-        globalCY[i] = globalArrY[index];
-        globalCZ[i] = globalArrZ[index];
-      }
-  }
-  MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  MPI_Bcast(globalCX.data(), k, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(globalCY.data(), k, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast(globalCZ.data(), k, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  int reminder = n%commSize;
-  for(int i = 0; i < commSize; i++){
-    sendCount[i] = n/commSize;
-    if(reminder > 0){
-      sendCount[i]++;
-      reminder--;
-    }
-    displs[i] = sum;
-    sum += sendCount[i];
-  }
-  std::vector<double> localArrX(n,0);
-  std::vector<double> localArrY(n,0);
-  std::vector<double> localArrZ(n,0);
-
- 
-  MPI_Scatterv(globalArrX.data(),sendCount,displs, MPI_DOUBLE, localArrX.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
-  MPI_Scatterv(globalArrY.data(),sendCount,displs, MPI_DOUBLE, localArrY.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
-  MPI_Scatterv(globalArrZ.data(),sendCount,displs, MPI_DOUBLE, localArrZ.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
-  std::vector<Point> globalC = deserializePoint(&globalCX, &globalCY,&globalCZ, k);
-  std::vector<Point> pointVec = deserializePoint(&localArrX, &localArrY, &localArrZ,sendCount[myRank]);
-  std::vector<Point> * localVec = kMeansClustering(&globalC,&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
-  
-  std::vector<double> localKArrX;
-  std::vector<double> localKArrY;
-  std::vector<double> localKArrZ;
-  std::vector<int> localKArrCluster;
-  for(int i = 0; i < sendCount[myRank]; i++){
-    localKArrX.push_back(localVec->at(i).x);
-    localKArrY.push_back(localVec->at(i).y);
-    localKArrZ.push_back(localVec->at(i).z);
-    localKArrCluster.push_back(localVec->at(i).cluster);
-  }
-  int sizeVec = sendCount[myRank];
-  
-  std::vector<double> globalKArrX(n,0);
-  std::vector<double> globalKArrY(n,0);
-  std::vector<double> globalKArrZ(n,0);
-  std::vector<int> globalKArrCluster(n,0);
-   
-  int * revIntCount = new int[commSize];
-  
-  
-  MPI_Gather(&sizeVec,1, MPI_INT, revIntCount,1, MPI_INT,0, MPI_COMM_WORLD);
-  int * finalDispls = NULL;
-
-  if(myRank == 0){
-    finalDispls = new int[commSize];
-    finalDispls[0] = 0;
-    
-    for(int i = 1; i < commSize; i++){
-      finalDispls[i] = finalDispls[i-1] + revIntCount[i-1];
-    } 
-  }
-  
-  MPI_Gatherv(localKArrX.data(),sizeVec,MPI_DOUBLE, globalKArrX.data(), revIntCount, finalDispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  MPI_Gatherv(localKArrY.data(),sizeVec,MPI_DOUBLE, globalKArrY.data(), revIntCount, finalDispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  MPI_Gatherv(localKArrZ.data(),sizeVec,MPI_DOUBLE, globalKArrZ.data(), revIntCount, finalDispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
-  MPI_Gatherv(localKArrCluster.data(),sizeVec,MPI_INT, globalKArrCluster.data(), revIntCount, finalDispls,MPI_INT,0,MPI_COMM_WORLD);
-
-  if(myRank == 0){
-    std::vector<Point> rankZeroPoints =  deserializePoint(&globalKArrX,&globalKArrY,&globalKArrZ,&globalKArrCluster, n);
-    
-    writeFile(output_dir + "/dist_cpu_output.csv", &rankZeroPoints);
-  }  
-  
-  delete[] sendCount;
-  delete[] displs;
-  delete[] revIntCount;
-  delete[] finalDispls;
-
+  return;
 }
