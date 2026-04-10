@@ -77,7 +77,7 @@ Example execution of CUDA GPU implementation:
 Example execution of Distributed CPU implementation:
 
 ```bash
-mpirun -n 2 ./kemans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_cpu --skip_serial
+mpirun -n 2 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_cpu --skip_serial
 ```
 
 ## Python Utilities
