@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     //initialize centroids to share between kmeans implementations
     vector<Point> centroids;
-    srand(0);
+    srand(time(0));
     for (int i = 0; i < args.k; ++i) {
         centroids.push_back(points[rand() % points.size()]);
     }
@@ -54,7 +54,9 @@ int main(int argc, char *argv[])
 
     if (args.dist_cpu) {
         //call distributed cpu implementation WITH shared data
-        kMeanDistributePerformance(argc, argv, args.epochs, args.k, args.input_file, args.output_dir);
+        vector<Point> dist_points = points;
+        vector<Point> dist_centroids = centroids;
+        kMeanDistributePerformance(argc, argv, args.epochs, args.k, args.input_file, args.output_dir, dist_centroids, dist_points);
     }
 
     if (args.cuda_gpu && rank == 0) {
