@@ -16,12 +16,13 @@ double Point::distance(const Point& p) const {
            (z - p.z)*(z - p.z);
 }
 
-Args::Args(int argc, char const *argv[]) {
+Args::Args(int argc, char *argv[]) {
     if (argc >= 4) {
         k = atoi(argv[1]);
-        input_file = argv[2];
-        output_dir = argv[3];
-        for (int i = 4; i < argc; ++i) {
+        epochs = atoi(argv[2]);
+        input_file = argv[3];
+        output_dir = argv[4];
+        for (int i = 5; i < argc; ++i) {
             string flag = argv[i];
             
             //handle skipping serial
@@ -57,12 +58,19 @@ Args::Args(int argc, char const *argv[]) {
 }
 
 void writeOutput(vector<Point>& points, const string& filename) {
-    ofstream file(filename);
-    file << "energy,speechiness,liveness,cluster" << endl;
-    for (const auto& p: points) {
-        file << p.x << "," << p.y << "," << p.z << "," << p.cluster << endl;
+    std::string buffer;
+    buffer.reserve(points.size() * 50);
+
+    buffer += "x,y,z,c\n";
+
+    for (const auto& p : points) {
+        buffer += std::to_string(p.x) + "," +
+                std::to_string(p.y) + "," +
+                std::to_string(p.z) + "," +
+                std::to_string(p.cluster) + "\n";
     }
-    file.close();
+    std::ofstream outfile(filename);
+    outfile.write(buffer.c_str(), buffer.size());
 }
 
 vector<Point> readData(const string& filename) {

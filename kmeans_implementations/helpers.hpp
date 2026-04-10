@@ -15,6 +15,7 @@ struct Point {
 
 struct Args {
     int k;
+    int epochs;
     std::string input_file;
     std::string output_dir;
     bool shared_cpu = false;
@@ -26,7 +27,7 @@ struct Args {
     bool dist_gpu = false;
     bool skip_serial = false;
 
-    Args(int argc, char const *argv[]);
+    Args(int argc, char *argv[]);
 };
 
 std::vector<Point> readData(const std::string& filename);
