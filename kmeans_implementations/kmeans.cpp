@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     //read args for number of clusters
     Args args(argc, argv);
 
-    bool use_mpi = args.dist_cpu;
+    bool use_mpi = args.dist_cpu || args.dist_gpu;
 
     if (use_mpi) {
         MPI_Init(&argc, &argv);
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         performSharedGPUKMeans(gpu_points, args.epochs, args.k, gpu_centroids, args.output_dir, args.threadsPerBlockCuda);
     } 
     if (use_mpi) MPI_Barrier(MPI_COMM_WORLD);
-    if (args.dist_gpu && rank==0) {
+    if (args.dist_gpu) {
         //call distributed gpu implementation
         vector<Point> dist_gpu_points = points;
         vector<Point> dist_gpu_centroids = centroids;

@@ -229,5 +229,5 @@ const string& output_dir, int threadsPerBlock, int rank
         << numDevices << " devices took " << chrono::duration<double>(end - start).count() << " seconds." << endl;
     }
 
-    writeOutput(points, output_dir + "/distributed_gpu_output.csv");
+    writeOutput(points, output_dir + "/dist_gpu_output.csv");
 }
