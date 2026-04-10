@@ -53,7 +53,7 @@ Args::Args(int argc, char *argv[]) {
             }
         }
     } else {
-        throw invalid_argument("Usage: <number_of_clusters> <input_file> <output_dir> [--shared_cpu <num_threads>] [--cuda_gpu] [--dist_cpu] [--dist_gpu] [--skip_serial]");
+        throw invalid_argument("Usage: <number_of_clusters> <input_file> <output_dir> [--shared_cpu <num_threads>] [--cuda_gpu <threads_per_block_cuda>] [--dist_cpu] [--dist_gpu <threads_per_block_dist>] [--skip_serial]");
     }
 }
 

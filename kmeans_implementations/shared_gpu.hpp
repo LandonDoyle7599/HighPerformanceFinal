@@ -33,14 +33,14 @@ void performSharedGPUKMeans(
     int k,
     std::vector<Point>& centroids,
     const std::string& output_dir,
-    int threadsInBlock
+    int threadsPerBlock
 );
 void performGPUKmeans(
     std::vector<Point>& points,
     int k,
     int epochs,
     std::vector<Point>& centroids,
-    int threadsInBlock
+    int threadsPerBlock
 );
 
 #endif

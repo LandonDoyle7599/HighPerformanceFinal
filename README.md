@@ -10,7 +10,8 @@ Brady: Implemented the distributed CPU implementation and updated the readme acc
 ## How To Run
 
 Because the centroids in the kmeans algorithm are randomly initialized, each implementation is run
-from a single master file that shares the starting centroids between implementations.
+from a single master file that shares the starting centroids between implementations. This allows the 
+use of a python validation script to ensure consistent output across implementations.
 
 ### Program Arguments
 
@@ -46,6 +47,12 @@ mpirun -n <num_nodes> ./kmeans <k> <epochs> ./csvs/trimmed_track_features.csv ./
 ```
 
 *** NOTE *** : this method of running is not ideal and may harm the performance of each method. For scaling studies and best performance it is recommended to run one method at a time. In the following sections commands are given to run each implementation stand-alone. Compilation is the same for every method and that command can be seen above. Also, keep in mind that when running all the implementations simultaneously the <num_threads> arg for shared_cpu will be multiplied by the num_nodes argument. 
+
+**Running all implementations simultaneously should only be used to validate output in combination with the python validation script.**
+
+*** NOTE *** : If running with the `mpirun` command, ensure one of the "dist" implementations is being used, using `mpirun` without including a dist implementation exlcudes the 
+logic that handles each rank and will result in all the non-dist implementations being run `num_nodes` times. Following the instructions below to run each implementation one at a time
+will prevent this issue. 
 
 ### Serial Implementation
 
@@ -84,7 +91,7 @@ mpirun -n 2 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_cpu --
 Example execution of Distributed GPU implementation:
 
 ```bash
-mpirun -n 2 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_gpu 256 --skip_serial
+./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_gpu 256 --skip_serial
 ```
 
 ## Python Utilities

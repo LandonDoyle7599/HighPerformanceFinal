@@ -12,14 +12,11 @@ using namespace std;
 std::mutex mtx;
 
 void performDistributedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
-const string& output_dir, int threadsPerBlock
+const string& output_dir, int threadsPerBlock, int rank
 ) {
     auto start = chrono::high_resolution_clock::now();
     int numDevices;
     cudaGetDeviceCount(&numDevices);
-
-    cout << "Using " << numDevices << " GPUs\n";
-
 
     //spliting the data set
     int n = points.size();
@@ -227,11 +224,10 @@ const string& output_dir, int threadsPerBlock
     }
     
     auto end = chrono::high_resolution_clock::now();
-    
-    cout << "[Distributed GPU] k=" << k
-     << ", time="
-     << chrono::duration<double>(end - start).count()
-     << " sec\n";
+    if (rank == 0){
+    cout << "DistGPUKMeans clustering with " << k << " clusters, " << threadsPerBlock << " threads per block, and " 
+        << numDevices << " devices took " << chrono::duration<double>(end - start).count() << " seconds." << endl;
+    }
 
     writeOutput(points, output_dir + "/distributed_gpu_output.csv");
 }
