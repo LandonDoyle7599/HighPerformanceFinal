@@ -73,10 +73,12 @@ __global__ void accumCentroids(float* x, float* y, float* z, int* clusters,
     
     if(globalIdx < n){
         int c = clusters[globalIdx];
-        atomicAdd(&s_sumX[c], x[globalIdx]);
-        atomicAdd(&s_sumY[c], y[globalIdx]);
-        atomicAdd(&s_sumZ[c], z[globalIdx]);
-        atomicAdd(&s_counts[c], 1);
+        if (c >= 0 && c < k) {
+            atomicAdd(&s_sumX[c], x[globalIdx]);
+            atomicAdd(&s_sumY[c], y[globalIdx]);
+            atomicAdd(&s_sumZ[c], z[globalIdx]);
+            atomicAdd(&s_counts[c], 1);
+        }
     }
     __syncthreads();
     

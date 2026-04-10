@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
     } 
     if (args.dist_gpu) {
         //call distributed gpu implementation
-        vector<Point> dist_gpu_points = points
+        vector<Point> dist_gpu_points = points;
         vector<Point> dist_gpu_centroids = centroids;
         performDistributedGPUKMeans(dist_gpu_points, 100, args.k, dist_gpu_centroids, args.output_dir,args.num_threads);
     }
