@@ -311,9 +311,9 @@ void kMeanDistribute(int argc, char*argv[],int epochs, int k, std::string fileNa
   MPI_Scatterv(globalArrX.data(),sendCount,displs, MPI_DOUBLE, localArrX.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
   MPI_Scatterv(globalArrY.data(),sendCount,displs, MPI_DOUBLE, localArrY.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
   MPI_Scatterv(globalArrZ.data(),sendCount,displs, MPI_DOUBLE, localArrZ.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
-
+  std::vector<Point> globalC = deserializePoint(&globalCX, &globalCY,&globalCZ, k);
   std::vector<Point> pointVec = deserializePoint(&localArrX, &localArrY, &localArrZ,sendCount[myRank]);
-  std::vector<Point> * localVec = kMeansClustering(&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
+  std::vector<Point> * localVec = kMeansClustering(&globalC,&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
   
   std::vector<double> localKArrX;
   std::vector<double> localKArrY;
