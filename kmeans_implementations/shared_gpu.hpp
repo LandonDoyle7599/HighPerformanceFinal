@@ -13,19 +13,17 @@ __global__ void assignClusters(
     float* centroid_y,
     float* centroid_z,
     int k,
-    int n,
-    int threadsPerBlock
+    int n
 );
 
-void cudaResetArrays(float* sumX,
+__global__ void resetArrays(float* sumX,
     float* sumY,
     float* sumZ,
     int* counts,
-    int k,
-    int threadsPerBlock
+    int k
 );
 
-void cudaAccumCentroids(float* x,
+__global__ void accumCentroids(float* x,
     float* y,
     float* z,
     int* clusters,
@@ -34,8 +32,7 @@ void cudaAccumCentroids(float* x,
     float* sumZ,
     int* counts,
     int n,
-    int k,
-    int threadsPerBlock
+    int k
 );
 #endif
 

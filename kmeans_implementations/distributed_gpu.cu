@@ -151,14 +151,19 @@ const string& output_dir, int threadsPerBlock, int rank
 
                 // Call kernel
                 // Assign clusters
-                cudaAssignClusters(d_x, d_y, d_z, d_clusters, d_centroidX, d_centroidY, d_centroidZ, k, localsize, threadsPerBlock);
+                assignClusters<<<numBlocks, threadsPerBlock>>>(d_x, d_y, d_z, d_clusters, d_centroidX, d_centroidY, d_centroidZ, k, localsize);
 
                 // Reset arrays
-                cudaResetArrays(d_sumX, d_sumY, d_sumZ, d_counts, k,threadsPerBlock);
+                resetArrays<<<(k+threadsPerBlock-1)/threadsPerBlock, threadsPerBlock>>>(d_sumX, d_sumY, d_sumZ, d_counts, k);
 
                 // Accumulate centroids
-                cudaAccumCentroids(d_x, d_y, d_z, d_clusters, d_sumX, d_sumY, d_sumZ, d_counts, localsize, k, threadsPerBlock);
+                int sharedMemSize = (3* k * sizeof(float)) + (k * sizeof(int));
+                accumCentroids<<<numBlocks, threadsPerBlock, sharedMemSize>>>(d_x, d_y, d_z, d_clusters, d_sumX, d_sumY, d_sumZ, d_counts, localsize, k);
                 cudaDeviceSynchronize();
+                cudaMemcpy(localSumX[device].data(), d_sumX, k * sizeof(float), cudaMemcpyDeviceToHost);
+                cudaMemcpy(localSumY[device].data(), d_sumY, k * sizeof(float), cudaMemcpyDeviceToHost);
+                cudaMemcpy(localSumZ[device].data(), d_sumZ, k * sizeof(float), cudaMemcpyDeviceToHost);
+                cudaMemcpy(localCounts[device].data(), d_counts, k * sizeof(int), cudaMemcpyDeviceToHost);
             });
         }
 
@@ -166,18 +171,39 @@ const string& output_dir, int threadsPerBlock, int rank
             t.join();
         }
 
+
         // Merge the results from different devices and update centroids
         for (int i = 0; i < k; i++) {
             float sx = 0, sy = 0, sz = 0;
+            int count= 0;
             for (int d = 0; d < numDevices; d++) {
                 sx += localSumX[d][i];
                 sy += localSumY[d][i];
                 sz += localSumZ[d][i];
+                count += localCounts[d][i];
             }
 
-            centroids[i].x = sx / numDevices;
-            centroids[i].y = sy / numDevices;
-            centroids[i].z = sz / numDevices;
+            if (count > 0) {
+                centroids[i].x = sx / count;
+                centroids[i].y = sy / count;
+                centroids[i].z = sz / count;
+            }
+        }
+    }
+
+    for (int device = 0; device < numDevices; device++) {
+        int startIdx = localStart[device];
+        int size = localSize[device];
+
+        if (size <= 0) continue;
+
+        vector<int> localClusters(size);
+
+        cudaSetDevice(device);
+        cudaMemcpy(localClusters.data(), gpu_clusters[device], size * sizeof(int), cudaMemcpyDeviceToHost);
+
+        for (int i = 0; i < size; i++) {
+            points[startIdx + i].cluster = localClusters[i];
         }
     }
 
