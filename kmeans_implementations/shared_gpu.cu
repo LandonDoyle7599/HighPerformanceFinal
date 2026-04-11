@@ -73,10 +73,12 @@ __global__ void accumCentroids(float* x, float* y, float* z, int* clusters,
     
     if(globalIdx < n){
         int c = clusters[globalIdx];
-        atomicAdd(&s_sumX[c], x[globalIdx]);
-        atomicAdd(&s_sumY[c], y[globalIdx]);
-        atomicAdd(&s_sumZ[c], z[globalIdx]);
-        atomicAdd(&s_counts[c], 1);
+        if (c >= 0 && c < k) {
+            atomicAdd(&s_sumX[c], x[globalIdx]);
+            atomicAdd(&s_sumY[c], y[globalIdx]);
+            atomicAdd(&s_sumZ[c], z[globalIdx]);
+            atomicAdd(&s_counts[c], 1);
+        }
     }
     __syncthreads();
     
@@ -98,6 +100,7 @@ __global__ void updateCentroids(float* centroid_x, float* centroid_y, float* cen
         centroid_z[i] = sumZ[i]/counts[i];
     }
 }
+
 //timer funct to press use all the functions.
 void performSharedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
                             const string& output_dir, int threadsPerBlock) {
@@ -185,8 +188,10 @@ void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& c
        gpu_centroid_x, gpu_centroid_y, gpu_centroid_z,k,n);
        CUDA_CHECK(cudaGetLastError());
 
+
        resetArrays<<<numBlocksK, threadsPerBlock>>>(gpu_sum_x, gpu_sum_y, gpu_sum_z, gpu_counts, k);
        CUDA_CHECK(cudaGetLastError());
+
 
        accumCentroids<<<numBlocks, threadsPerBlock, sharedMemSize>>>(gpu_x, gpu_y, gpu_z,
            gpu_clusters,
@@ -194,10 +199,12 @@ void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& c
            gpu_counts, n,k);
        CUDA_CHECK(cudaGetLastError());
 
+
        updateCentroids<<<numBlocksK, threadsPerBlock>>>(gpu_centroid_x, gpu_centroid_y, gpu_centroid_z,
            gpu_sum_x, gpu_sum_y, gpu_sum_z,
            gpu_counts, k);
        CUDA_CHECK(cudaGetLastError());
+
    }
     CUDA_CHECK(cudaDeviceSynchronize());
     
