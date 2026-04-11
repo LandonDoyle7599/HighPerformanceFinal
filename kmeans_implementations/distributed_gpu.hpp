@@ -11,7 +11,8 @@ void performDistributedGPUKMeans(
     int k,
     std::vector<Point>& centroids,
     const std::string& output_dir,
-    int threadsPerBlock
+    int threadsPerBlock,
+    int rank
 );
 
 #endif

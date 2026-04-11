@@ -36,7 +36,6 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
                 fill(sumYGlobal.begin(), sumYGlobal.end(), 0);
                 fill(sumZGlobal.begin(), sumZGlobal.end(), 0);
             }
-
             //assign points to closest centroid
             #pragma omp for
             for (int i = 0; i < points.size(); ++i) {
@@ -62,16 +61,14 @@ void sharedCPUKMeansClustering(vector<Point>& points, int epochs, int k, vector<
                 p.minDist = DBL_MAX; //reset minDist for next epoch
             }
 
-            //sum local values into global vectors
-            for (int i = 0; i < k; ++i) {
-                #pragma omp atomic
-                nPointsGlobal[i] += nPoints[i];
-                #pragma omp atomic
-                sumXGlobal[i] += sumX[i];
-                #pragma omp atomic
-                sumYGlobal[i] += sumY[i];
-                #pragma omp atomic
-                sumZGlobal[i] += sumZ[i];
+            #pragma omp critical
+            {
+                for (int i = 0; i < k; ++i) {
+                    nPointsGlobal[i] += nPoints[i];
+                    sumXGlobal[i] += sumX[i];
+                    sumYGlobal[i] += sumY[i];
+                    sumZGlobal[i] += sumZ[i];
+                }
             }
             
             #pragma omp barrier //ensure all threads have updated global vectors before updating centroids
@@ -97,11 +94,5 @@ void performSharedCPUKMeans(vector<Point>& points, int epochs,  int k, vector<Po
     auto end_time = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end_time - start_time;
     cout << "SharedCPUKMeans clustering with " << k << " clusters and " << num_threads << " threads took " << elapsed.count() << " seconds." << endl;
-    writeOutput(points, output_dir + "shared_cpu_output.csv");
+    writeOutput(points, output_dir + "/shared_cpu_output.csv");
 }
-
-
-
-
-
-

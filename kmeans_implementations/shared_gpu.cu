@@ -138,22 +138,22 @@ void cudaAccumCentroids(float* x, float* y, float* z, int* clusters,
 }
 //timer funct to press use all the functions.
 void performSharedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
-                            const string& output_dir, int threadsInBlock) {
+                            const string& output_dir, int threadsPerBlock) {
     
     auto start_time = chrono::high_resolution_clock::now();
 
-    performGPUKmeans(points, k, epochs, centroids, threadsInBlock);
+    performGPUKmeans(points, k, epochs, centroids, threadsPerBlock);
 
     auto end_time = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = end_time - start_time;
 
-    cout << "Shared GPU KMeans clustering with "
-         << k << " clusters took "
+    cout << "CudaGPUKMeans clustering with "
+         << k << " clusters and " << threadsPerBlock << " threads per block took "
          << elapsed.count() << " seconds." << endl;
 
-    writeOutput(points, output_dir + "/shared_gpu_output.csv");
+    writeOutput(points, output_dir + "/cuda_gpu_output.csv");
 }
-void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& centroids, int threadsInBlock) {
+void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& centroids, int threadsPerBlock) {
     //so many vars
     int n = points.size();
     vector<float> cpu_x(n);
@@ -214,25 +214,25 @@ void performGPUKmeans(vector<Point>& points, int k, int epochs, vector<Point>& c
     CUDA_CHECK(cudaMemcpy(gpu_centroid_z, cpu_centroid_z.data(), k * sizeof(float), cudaMemcpyHostToDevice));
 
     //threads, blocks and share memory
-    int numBlocks = (n + threadsInBlock - 1) / threadsInBlock;
-    int numBlocksK= (k + threadsInBlock - 1) / threadsInBlock;
+    int numBlocks = (n + threadsPerBlock - 1) / threadsPerBlock;
+    int numBlocksK= (k + threadsPerBlock - 1) / threadsPerBlock;
     int sharedMemSize = (3 * k * sizeof(float)) + (k * sizeof(int));
    for (int epoch = 0; epoch < epochs; epoch++) {
 
-       assignClusters<<<numBlocks, threadsInBlock>>>(gpu_x, gpu_y, gpu_z,gpu_clusters,
+       assignClusters<<<numBlocks, threadsPerBlock>>>(gpu_x, gpu_y, gpu_z,gpu_clusters,
        gpu_centroid_x, gpu_centroid_y, gpu_centroid_z,k,n);
        CUDA_CHECK(cudaGetLastError());
 
-       resetArrays<<<numBlocksK, threadsInBlock>>>(gpu_sum_x, gpu_sum_y, gpu_sum_z, gpu_counts, k);
+       resetArrays<<<numBlocksK, threadsPerBlock>>>(gpu_sum_x, gpu_sum_y, gpu_sum_z, gpu_counts, k);
        CUDA_CHECK(cudaGetLastError());
 
-       accumCentroids<<<numBlocks, threadsInBlock, sharedMemSize>>>(gpu_x, gpu_y, gpu_z,
+       accumCentroids<<<numBlocks, threadsPerBlock, sharedMemSize>>>(gpu_x, gpu_y, gpu_z,
            gpu_clusters,
            gpu_sum_x, gpu_sum_y, gpu_sum_z,
            gpu_counts, n,k);
        CUDA_CHECK(cudaGetLastError());
 
-       updateCentroids<<<numBlocksK, threadsInBlock>>>(gpu_centroid_x, gpu_centroid_y, gpu_centroid_z,
+       updateCentroids<<<numBlocksK, threadsPerBlock>>>(gpu_centroid_x, gpu_centroid_y, gpu_centroid_z,
            gpu_sum_x, gpu_sum_y, gpu_sum_z,
            gpu_counts, k);
        CUDA_CHECK(cudaGetLastError());

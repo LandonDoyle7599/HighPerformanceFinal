@@ -10,8 +10,8 @@ def visualize_clusters(input_file, output_file):
     ax.set_position([0.1, 0.1, 0.7, 0.8])
 
     scatter = ax.scatter(
-        df['energy'], df['speechiness'], df['liveness'],
-        c=df['cluster'],
+        df['x'], df['y'], df['z'],
+        c=df['c'],
         cmap='viridis'
     )
 

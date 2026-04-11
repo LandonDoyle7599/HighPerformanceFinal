@@ -16,12 +16,13 @@ double Point::distance(const Point& p) const {
            (z - p.z)*(z - p.z);
 }
 
-Args::Args(int argc, char const *argv[]) {
+Args::Args(int argc, char *argv[]) {
     if (argc >= 4) {
         k = atoi(argv[1]);
-        input_file = argv[2];
-        output_dir = argv[3];
-        for (int i = 4; i < argc; ++i) {
+        epochs = atoi(argv[2]);
+        input_file = argv[3];
+        output_dir = argv[4];
+        for (int i = 5; i < argc; ++i) {
             string flag = argv[i];
             
             //handle skipping serial
@@ -35,23 +36,41 @@ Args::Args(int argc, char const *argv[]) {
                     i++;
                 }
             }
-            
-            else if (flag == "--cuda_gpu") cuda_gpu = true; //add onto this for any additional args
+            else if (flag == "--cuda_gpu"){
+                 cuda_gpu = true;
+                 if (i + 1 < argc){
+                    threadsPerBlockCuda = atoi(argv[i + 1]);
+                    i++;
+                 }
+            }      
             else if (flag == "--dist_cpu") dist_cpu = true; //add onto this for any additional args
-            else if (flag == "--dist_gpu") dist_gpu = true; //add onto this for any additional args
+            else if (flag == "--dist_gpu"){
+                dist_gpu = true;
+                if (i + 1 < argc){
+                    threadsPerBlockDist = atoi(argv[i+1]);
+                    i++;
+                }
+            }
         }
     } else {
-        throw invalid_argument("Usage: <number_of_clusters> <input_file> <output_dir> [--shared_cpu <num_threads>] [--cuda_gpu] [--dist_cpu] [--dist_gpu] [--skip_serial]");
+        throw invalid_argument("Usage: <number_of_clusters> <input_file> <output_dir> [--shared_cpu <num_threads>] [--cuda_gpu <threads_per_block_cuda>] [--dist_cpu] [--dist_gpu <threads_per_block_dist>] [--skip_serial]");
     }
 }
 
 void writeOutput(vector<Point>& points, const string& filename) {
-    ofstream file(filename);
-    file << "energy,speechiness,liveness,cluster" << endl;
-    for (const auto& p: points) {
-        file << p.x << "," << p.y << "," << p.z << "," << p.cluster << endl;
+    std::string buffer;
+    buffer.reserve(points.size() * 50);
+
+    buffer += "x,y,z,c\n";
+
+    for (const auto& p : points) {
+        buffer += std::to_string(p.x) + "," +
+                std::to_string(p.y) + "," +
+                std::to_string(p.z) + "," +
+                std::to_string(p.cluster) + "\n";
     }
-    file.close();
+    std::ofstream outfile(filename);
+    outfile.write(buffer.c_str(), buffer.size());
 }
 
 vector<Point> readData(const string& filename) {

@@ -9,20 +9,18 @@
 #include "helpers.hpp"
 #include "distributed_gpu.hpp"
 #include "shared_gpu.hpp"
+using namespace std;
 std::mutex mtx;
 using std::vector;
 
 
 
 void performDistributedGPUKMeans(vector<Point>& points, int epochs, int k, vector<Point>& centroids,
-const std::string& output_dir, int threadsPerBlock
+const string& output_dir, int threadsPerBlock, int rank
 ) {
     auto start = std::chrono::high_resolution_clock::now();
     int numDevices;
     cudaGetDeviceCount(&numDevices);
-
-    std::cout << "Using " << numDevices << " GPUs\n";
-
 
     // Splitting the data set
     int n = points.size();
@@ -198,11 +196,12 @@ const std::string& output_dir, int threadsPerBlock
         cudaFree(gpu_sumZ[device]);
         cudaFree(gpu_counts[device]);
     }
+    
+    auto end = chrono::high_resolution_clock::now();
+    if (rank == 0){
+    cout << "DistGPUKMeans clustering with " << k << " clusters, " << threadsPerBlock << " threads per block, and " 
+        << numDevices << " devices took " << chrono::duration<double>(end - start).count() << " seconds." << endl;
+    }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "[Distributed GPU] k=" << k
-              << ", time=" << std::chrono::duration<double>(end - start).count()
-              << " sec\n";
-
-    writeOutput(points, output_dir + "/distributed_gpu_output.csv");
+    writeOutput(points, output_dir + "/dist_gpu_output.csv");
 }

@@ -10,34 +10,56 @@ Brady: Implemented the distributed CPU implementation and updated the readme acc
 ## How To Run
 
 Because the centroids in the kmeans algorithm are randomly initialized, each implementation is run
-from a single master file that shares the starting centroids between implementations.
-
-### Load CHPC Modules
-` module load gcc cuda intel-mpi cmake `
+from a single master file that shares the starting centroids between implementations. This allows the 
+use of a python validation script to ensure consistent output across implementations.
 
 ### Program Arguments
 
 The program takes three arguments:
 1. \<k> : The number of clusters.
-2. \<input_file> : The path to the trimmed input CSV file containing the data.
-3. \<output_dir> : The directory where the output files will be saved (no trailing slash).
+2. \<epochs> : The number of epochs. 
+3. \<input_file> : The path to the trimmed input CSV file containing the data.
+4. \<output_dir> : The directory where the output files will be saved (no trailing slash).
 
 Optional Flags:
 - `--skip-serial` : Skip executing the serial implementation.
-- `--shared-cpu` : Run the shared memory CPU implementation. This implementation will prompt for the number of threads to use, must be an integer.
+- `--shared-cpu` : Run the shared memory CPU implementation. This implementation requires an argument after the flag to specify the number of threads to use.
 - `--cuda-gpu` : Run the CUDA GPU implementation.
-- `--dist-cpu` : Run the distributed computing CPU implementation.
-- `--dist-gpu` : Run the distributed computing GPU implementation.
+- `--dist-cpu` : Run the distributed computing CPU implementation. This implementation requires an argument after the flag to specify the number of threads per cuda GPU block to use.
+- `--dist-gpu` : Run the distributed computing GPU implementation. This implementation requires an argument after the flag to specify the number of threads per cuda GPU block to use.
 
-Using these flags, every implementation can be run sequentially or one at a time. Each will report the total execution time and create a unique output file appended with the implementation name e.g. `output_serial.csv`.
+Using these flags, every implementation can be run sequentially or one at a time. Each will report the total execution time and create a unique output file appended with the implementation name e.g. `serial_output.csv`.
+
+### Running on CHPC
+Load the necessary modules
+
+` module load gcc cuda intel-mpi cmake python`
+
+When running in the CHPC, if running a GPU implementation ensure a GPU has been allocated, and compile with the following 
+` nvcc -ccbin mpicxx -Xcompiler -fopenmp ./kmeans_implementations/*.cpp ./kmeans_implementations/*.cu -o kmeans`
+
+If running an implementation that uses MPI this command is required for compatibility
+`export I_MPI_FABRICS=shm`
+
+The command to run all implementations sequentially on the CHPC is the following:
+```bash
+mpirun -n <num_nodes> ./kmeans <k> <epochs> ./csvs/trimmed_track_features.csv ./csvs --shared_cpu <num_threads> --cuda_gpu <threads_in_block_cuda> --dist_cpu --dist_gpu <threads_in_block_dist>
+```
+
+*** NOTE *** : this method of running is not ideal and may harm the performance of each method. For scaling studies and best performance it is recommended to run one method at a time. In the following sections commands are given to run each implementation stand-alone. Compilation is the same for every method and that command can be seen above. Also, keep in mind that when running all the implementations simultaneously the <num_threads> arg for shared_cpu will be multiplied by the num_nodes argument. 
+
+**Running all implementations simultaneously should only be used to validate output in combination with the python validation script.**
+
+*** NOTE *** : If running with the `mpirun` command, ensure one of the "dist" implementations is being used, using `mpirun` without including a dist implementation exlcudes the 
+logic that handles each rank and will result in all the non-dist implementations being run `num_nodes` times. Following the instructions below to run each implementation one at a time
+will prevent this issue. 
 
 ### Serial Implementation
 
 Example execution of serial implementation: 
 
 ```bash
-g++ -o /kmeans_implementations/*.cpp -o kmeans
-./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs
+./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs
 ```
 
 ### Shared Memory CPU Implementation
@@ -45,9 +67,7 @@ g++ -o /kmeans_implementations/*.cpp -o kmeans
 Example execution of shared memory CPU implementation:
 
 ```bash
-g++ -o /kmeans_implementations/*.cpp -o kmeans -fopenmp
-./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu
-Enter the number of threads to use for the shared CPU implementation: 8
+./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --shared_cpu 8 --skip_serial
 ```
 
 ### CUDA GPU Implementation
@@ -55,19 +75,23 @@ Enter the number of threads to use for the shared CPU implementation: 8
 Example execution of CUDA GPU implementation:
 
 ```bash
-nvcc -o kmeans kmeans_implementations/*.cu kmeans_implementations/*.cpp 
-./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --cuda-gpu
-Enter the number of threads per block for shared GPU execution: 256
+./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --cuda-gpu 256 --skip_serial
 ```
 
-###  Distributed GPU Implementation
+### Distributed CPU Implementation
 
-Example execution of  Distributed GPU implementation:
+Example execution of Distributed CPU implementation:
 
 ```bash
-nvcc -o kmeans kmeans_implementations/*.cu kmeans_implementations/*.cpp 
-./kmeans 4 ./csvs/trimmed_track_features.csv ./csvs --dist-gpu
-Enter the number of threads per block for distributed GPU execution: 256
+mpirun -n 2 ./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_cpu --skip_serial
+```
+
+### Distributed GPU Implementation
+
+Example execution of Distributed GPU implementation:
+
+```bash
+./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --dist_gpu 256 --skip_serial
 ```
 
 ## Python Utilities

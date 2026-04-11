@@ -5,10 +5,9 @@
 #include <string>
 #include "helpers.hpp"
 
-
-void cudaAssignClusters(float* point_x,
-    float* point_y,
-    float* point_z,
+#ifdef __CUDACC__
+__global__ void assignClusters(
+    float* point_x, float* point_y, float* point_z,
     int* cluster,
     float* centroid_x,
     float* centroid_y,
@@ -38,6 +37,8 @@ void cudaAccumCentroids(float* x,
     int k,
     int threadsPerBlock
 );
+#endif
+
 void performSharedGPUKMeans(
     std::vector<Point>& points,
     int epochs,
@@ -51,7 +52,7 @@ void performGPUKmeans(
     int k,
     int epochs,
     std::vector<Point>& centroids,
-    int threadsInblocks
+    int threadsPerBlock
 );
 
 #endif
