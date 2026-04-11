@@ -22,11 +22,11 @@ The program takes three arguments:
 4. \<output_dir> : The directory where the output files will be saved (no trailing slash).
 
 Optional Flags:
-- `--skip-serial` : Skip executing the serial implementation.
-- `--shared-cpu` : Run the shared memory CPU implementation. This implementation requires an argument after the flag to specify the number of threads to use.
-- `--cuda-gpu` : Run the CUDA GPU implementation.
-- `--dist-cpu` : Run the distributed computing CPU implementation. This implementation requires an argument after the flag to specify the number of threads per cuda GPU block to use.
-- `--dist-gpu` : Run the distributed computing GPU implementation. This implementation requires an argument after the flag to specify the number of threads per cuda GPU block to use.
+- `--skip_serial` : Skip executing the serial implementation.
+- `--shared_cpu` : Run the shared memory CPU implementation. This implementation requires an argument after the flag to specify the number of threads to use.
+- `--cuda_gpu` : Run the CUDA GPU implementation.
+- `--dist_cpu` : Run the distributed computing CPU implementation. This implementation requires an argument after the flag to specify the number of threads per cuda GPU block to use.
+- `--dist_gpu` : Run the distributed computing GPU implementation. This implementation requires an argument after the flag to specify the number of threads per cuda GPU block to use.
 
 Using these flags, every implementation can be run sequentially or one at a time. Each will report the total execution time and create a unique output file appended with the implementation name e.g. `serial_output.csv`.
 
@@ -75,7 +75,7 @@ Example execution of shared memory CPU implementation:
 Example execution of CUDA GPU implementation:
 
 ```bash
-./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --cuda-gpu 256 --skip_serial
+./kmeans 4 25 ./csvs/trimmed_track_features.csv ./csvs --cuda_gpu 256 --skip_serial
 ```
 
 ### Distributed CPU Implementation
