@@ -146,26 +146,45 @@ python validateResults.py ./csvs/output_serial.csv ./csvs/output_shared_cpu.csv
 ### Scaling Study
 For the scaling study, we chose k={2,4,6}, e={25,50,100}. We chose these k and e values to give us a clear understanding of how these values affect the k-mean clustering's runtime. The problem sizes we chose were 2^20, 2^19, and 2^18.  
 For the parallel vs serial scaling study, we used eight threads for the parallel implementation. Since there is only one thread on the serial, we run the program eight times and we include the speedup and efficiency. 
-| Serial | Parallel |
+| Parallel | Serial |
 |--------|----------|
 |K2 E25|
-|![Graph](./graphs/K2_E25_Parallel.png)| 
+|![Graph](./graphs/K2_E25_Parallel.png)| ![Graph](./graphs/K2_E25_Serial.png)|
 |K2 E50|
-|![Graph](./graphs/K2_E50_ParallelScaling.png)|
+|![Graph](./graphs/K2_E50_ParallelScaling.png)| ![Graph](./graphs/K2_E50_SerialScaling.png)|
 |K2 E100|
-|![Graph](./graphs/K2_E100_ParallelScaling.png)|
+|![Graph](./graphs/K2_E100_ParallelScaling.png)| ![Graph](./graphs/K2_E100_SerialScaling.png)|
 |K4 E25|
-|![Graph](./graphs/K4_E25_ParallelScaling.png)|
+|![Graph](./graphs/K4_E25_ParallelScaling.png)|![Graph](./graphs/K4_E25_SerialScaling.png)|
 |K4 E50|
-|![Graph](./graphs/ParallelCPUK4E50Scaling.png)|
+|![Graph](./graphs/ParallelCPUK4E50Scaling.png)|![Graph](./graphs/SerialK4E50.png)|
 |K4 E100|
-|![Graph](./graphs/ParallelCPUK4E100Scaling.png)|
+|![Graph](./graphs/ParallelCPUK4E100Scaling.png)|![Graph](./graphs/SerialK4E100.png)|
 |K6 E25|
-|![Graph](./graphs/ParallelCPUK6E25Scaling.png)|
+|![Graph](./graphs/ParallelCPUK6E25Scaling.png)|![Graph](./graphs/SerialK6E25.png)|
 |K6 E50|
-|![Graph](./graphs/ParallelCPUK6E50Scaling.png)|
+|![Graph](./graphs/ParallelCPUK6E50Scaling.png)|![Graph](./graphs/SerialK6E50.png)|
 |K6 E100|
-|![Graph](./graphs/ParallelCPUK6E100Scaling.png)|
+|![Graph](./graphs/ParallelCPUK6E100Scaling.png)|![Graph](./graphs/SerialK6E100.png)|
+|Parallel Speed up and Efficiency|
+|K2 E25|
+|![Graph](./graphs/K2_E25_ParallelSP.png)|![Graph](./graphs/K2_E25_ParallelE.png)|
+|K2 E50|
+|![Graph](./graphs/K2_E50_ParallelSP.png)|![Graph](./graphs/K2_E50_ParallelE.png)|
+|K2 E100|
+|![Graph](./graphs/K2_E100_ParallelSpeedup.png)|![Graph](./graphs/K2_E100_ParallelE.png)|
+|K4 E25|
+|![Graph](./graphs/K4_E25_ParallelSpeedup.png)|![Graph](./graphs/K4_E25_ParallelE.png)|
+|K4 E50|
+|![Graph](./graphs/ParallelCPUK4E50Speedup.png)|![Graph](./graphs/ParallelCPUK4E50Efficiency.png)|
+|K4 E100|
+|![Graph](./graphs/ParallelCPUK4E100Speedup.png)|![Graph](./graphs/ParallelCPUK4E100Efficiency.png)|
+|K6 E25|
+|![Graph](./graphs/ParallelCPUK6E25Speedup.png)|![Graph](./graphs/ParallelCPUK6E25Efficiency.png)|
+|K6 E50|
+|![Graph](./graphs/ParallelCPUK6E50Speedup.png)|![Graph](./graphs/ParallelCPUK6E50Efficiency.png)|
+|K6 E100|
+|![Graph](./graphs/ParallelCPUK6E100Speedup.png)|![Graph](./graphs/ParallelCPUK6E100Efficiency.png)|
 
 For the GPU study, we used the blocksize 8x8, 16x16, and 32x32.
 | GPU    |
