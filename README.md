@@ -172,9 +172,72 @@ For the GPU study, we used the blocksize 8x8, 16x16, and 32x32.
 |![Graph](./graphs/GPUK6E50Scaling.png)|
 |K6 E100|
 |![Graph](./graphs/GPUK6E100Scaling.png)|
+
 For the Distribute GPU scaling study, we used the same blocksize as the GPU.
 We used 2-4 GPU for the Distribute GPU and 2-4 Nodes for the Distribute CPU.
+
 | Distribute CPU | Distribute GPU |
 |--------|----------|
-|||
-
+|K2 E25|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K2 E 25 NP 4.png>)|![Graph](./graphs/K2_E25_DistributeGPUBS64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K2 E 25 NP 6.png>)|![Graph](./graphs/K2_E25_DistributeGPUBS256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K2 E 25 NP 8.png>)|![Graph](./graphs/K2_E25_DistributeGPUBS1024.png) |
+|K2 E50|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K2 E 50 NP 4.png>)|![Graph](./graphs/K2_E50_DistributeGPUBS64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K2 E 50 NP 6.png>)|![Graph](./graphs/K2_E50_DistributeGPUBS256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K2 E 50 NP 8.png>)|![Graph](./graphs/K2_E50_DistributeGPUBS1024.png) |
+|K2 E100|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K2 E 100 NP 4.png>)|![Graph](./graphs/K2_E100_DistributeGPUBS64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K2 E 100 NP 6.png>)|![Graph](./graphs/K2_E100_DistributeGPUBS256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K2 E 100 NP 8.png>)|![Graph](./graphs/K2_E100_DistributeGPUBS1024.png) |
+|K4 E25|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K4 E 25 NP 4.png>)|![Graph](./graphs/K4_E25_DistributeGPUBS64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K4 E 25 NP 6.png>)|![Graph](./graphs/K4_E25_DistributeGPUBS256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K4 E 25 NP 8.png>)|![Graph](./graphs/K4_E25_DistributeGPUBS1024.png) |
+|K4 E50|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K4 E 50 NP 4.png>)|![Graph](./graphs/DistributeGPUK4E50Blocksize64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K4 E 50 NP 6.png>)|![Graph](./graphs/DistributeGPUK4E50Blocksize256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K4 E 50 NP 8.png>)|![Graph](./graphs/DistributeGPUK4E50Blocksize1024.png) |
+|K4 E100|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K4 E 100 NP 4.png>)|![Graph](./graphs/DistributeGPUK4E100Blocksize64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K4 E 100 NP 6.png>)|![Graph](./graphs/DistributeGPUK4E100Blocksize256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K4 E 100 NP 8.png>)|![Graph](./graphs/DistributeGPUK4E100Blocksize1024.png) |
+|K6 E25|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K6 E 25 NP 4.png>)|![Graph](./graphs/DistributeGPUK6E25Blocksize64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K6 E 25 NP 6.png>)|![Graph](./graphs/DistributeGPUK6E25Blocksize256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K6 E 25 NP 8.png>)|![Graph](./graphs/DistributeGPUK6E25Blocksize1024.png) |
+|K6 E50|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K6 E 50 NP 4.png>)|![Graph](./graphs/DistributeGPUK6E50Blocksize64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K6 E 50 NP 6.png>)|![Graph](./graphs/DistributeGPUK6E50Blocksize256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K6 E 50 NP 8.png>)|![Graph](./graphs/DistributeGPUK6E50Blocksize1024.png) |
+|K6 E100|
+| Number of proceses (NP) 4|Blocksize 64|
+|![Graph](<./graphs/Distribute CPU K6 E 100 NP 4.png>)|![Graph](./graphs/DistributeGPUK6E100Blocksize64.png) 
+| NP 6|Blocksize 256|
+|![Graph](<./graphs/Distribute CPU K6 E 100 NP 6.png>)|![Graph](./graphs/DistributeGPUK6E100Blocksize256.png) |
+| NP 8|Blocksize 1024|
+|![Graph](<./graphs/Distribute CPU K6 E 100 NP 8.png>)|![Graph](./graphs/DistributeGPUK6E100Blocksize1024.png) |
