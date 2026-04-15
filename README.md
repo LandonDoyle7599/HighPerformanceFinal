@@ -149,10 +149,29 @@ For the parallel vs serial scaling study, we used eight threads for the parallel
 | Serial | Parallel |
 |--------|----------|
 
-For the GPU scaling study, we used the blocksize 8x8, 16x16, and 32x32.
-| GPU    |          |
-|--------|----------|
-
+For the GPU study, we used the blocksize 8x8, 16x16, and 32x32.
+| GPU    |
+|--------|
+|K2 E25|
+|![Example Visualization](./graphs/K2_E25_GPUScaling.png)|
+|K2 E50|
+|![Graph](./graphs/K2_E50_GPUScaling.png)|
+|K2 E100|
+|![Graph](./graphs/K2_E100_GPUScaling.png)|
+|K4 E25|
+|![Graph](./graphs/K4_E25_GPUScaling.png)|
+|K4 E50|
+|![Graph](./graphs/GPUK4E50Scaling.png)|
+|K4 E100|
+|![Graph](./graphs/GPUK4E100Scaling.png)|
+|K4 E100|
+|![Graph](./graphs/GPUK4E50Scaling.png)|
+|K6 E25|
+|![Graph](./graphs/GPUK6E25Scaling.png)|
+|K6 E50|
+|![Graph](./graphs/GPUK6E50Scaling.png)|
+|K6 E100|
+|![Graph](./graphs/GPUK6E100Scaling.png)|
 For the Distribute GPU scaling study, we used the same blocksize as the GPU.
 We used 2-4 GPU for the Distribute GPU and 2-4 Nodes for the Distribute CPU.
 | Distribute CPU | Distribute GPU |
