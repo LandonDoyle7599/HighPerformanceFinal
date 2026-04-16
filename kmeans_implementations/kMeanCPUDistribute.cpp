@@ -1,6 +1,12 @@
 #include "kMeanCPUDistribute.hpp"
 
-
+/** deserializePoint method is a overload method to deserialize a local x,y,z, and n vector to a class point vector 
+ *  Input std::vector<double>* vecX
+ *        std::vector<double>* vecY
+ *        std::vector<double>* vecZ
+          int n - number of points
+ * Output std::vector<Point> 
+ */
 std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double>* vecY,std::vector<double>* vecZ, int n){
   std::vector<Point> points;
 
@@ -10,7 +16,14 @@ std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double
   }
   return points;
 }
-
+/** deserializePoint method is a overload method to deserialize a local x,y,z, vecCluster, and n vector to a class point vector 
+ *  Input std::vector<double>* vecX
+ *        std::vector<double>* vecY
+ *        std::vector<double>* vecZ
+ *        std::vector<int>* vecCluster
+ *        int n - number of points
+ * Output std::vector<Point> 
+ */
 std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double>* vecY,std::vector<double>* vecZ,std::vector<int>* vecCluster, int n){
   std::vector<Point> points;
   
@@ -21,6 +34,14 @@ std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double
   }
   return points;
 }
+/** deserializePoint method is a overload method to deserialize a local x,y,z, vecCluster, vecMinDist vector to a class point vector 
+ *  Input std::vector<double>* vecX
+ *        std::vector<double>* vecY
+ *        std::vector<double>* vecZ
+ *        std::vector<int>* vecCluster
+ *        std::vector<int>* vecMinDist
+ * Output std::vector<Point> 
+ */
 std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double>* vecY,std::vector<double>* vecZ,std::vector<int>* vecCluster,std::vector<int>* vecMinDist){
   std::vector<Point> points;
   int n = vecX->size();
@@ -33,6 +54,19 @@ std::vector<Point> deserializePoint(std::vector<double>* vecX,std::vector<double
   return points;
 }
 
+
+
+/**
+ * kMeansClustering calcuate the kMean for the distribute CPU using the points, centroids, epochs, k, mySize, myRank, and commSize.
+ * input: std::vector<Point> * centroids - random selected points
+ *        std::vector<Point> * points
+ *        int epochs
+ *        int k
+ *        int mySize
+ *        int myRank
+ *        int commSize
+ * Output std::vector<Point> * points
+ */
 std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector<Point> * points, int epochs, int k,int mySize, int myRank ,int commSize){
 
   
@@ -72,7 +106,7 @@ std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector
 
     std::vector<int> globalNPoints(k);
     std::vector<double> globalSumX(k), globalSumY(k), globalSumZ(k);
-
+    // Calculate the global sum
     MPI_Allreduce(nPoints.data(), globalNPoints.data(), k, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(sumX.data(), globalSumX.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     MPI_Allreduce(sumY.data(), globalSumY.data(), k, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -88,7 +122,18 @@ std::vector<Point> * kMeansClustering(std::vector<Point> * centroids,std::vector
   } 
   return points;
 }
-
+/**
+ * kMeanDistributePerformance method calculates the kMean using MPI communcation. The method runs with epoch, k, filename, centroid, output_dir, points, and output to a file.
+ * Input: int argc
+ *        char* argv[]  
+ *        int epochs
+ *        int k
+ *        std::string fileName
+ *        std::string output_dir
+ *        std::vector<Point>& centroids, 
+ *        std::vector<Point>& points
+ * Output file
+ */
 void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::string fileName, std::string output_dir, std::vector<Point>& centroids, std::vector<Point>& points){  
   double start, finish;
   int myRank, commSize;
@@ -111,7 +156,7 @@ void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::
   std::vector<double> globalCY(k, 0);
   std::vector<double> globalCZ(k, 0);
 
-  
+  // Rank zero create the global arr and centroids/  
   if(myRank == 0){
     n = points.size();
     for (int i = 0; i < n; i++) {
@@ -125,6 +170,7 @@ void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::
         globalCZ[i] = centroids[i].z;
     }
   }
+  // Rank zero broadcasts the array to other ranks.
   MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast(globalCX.data(), k, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast(globalCY.data(), k, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -143,11 +189,13 @@ void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::
   std::vector<double> localArrY(n,0);
   std::vector<double> localArrZ(n,0);
 
- 
+ // Scatter the globalArray.
   MPI_Scatterv(globalArrX.data(),sendCount,displs, MPI_DOUBLE, localArrX.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
   MPI_Scatterv(globalArrY.data(),sendCount,displs, MPI_DOUBLE, localArrY.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
   MPI_Scatterv(globalArrZ.data(),sendCount,displs, MPI_DOUBLE, localArrZ.data() , sendCount[myRank], MPI_DOUBLE,0, MPI_COMM_WORLD);
+  // Create the global centroids.
   std::vector<Point> globalC = deserializePoint(&globalCX, &globalCY,&globalCZ, k);
+  // create the local points
   std::vector<Point> pointVec = deserializePoint(&localArrX, &localArrY, &localArrZ,sendCount[myRank]);
   start = MPI_Wtime();
   std::vector<Point> * localVec = kMeansClustering(&globalC,&pointVec, epochs, k,sendCount[myRank],myRank,commSize);
@@ -159,6 +207,8 @@ void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::
   std::vector<double> localKArrY;
   std::vector<double> localKArrZ;
   std::vector<int> localKArrCluster;
+
+  // Create the local arr
   for(int i = 0; i < sendCount[myRank]; i++){
     localKArrX.push_back(localVec->at(i).x);
     localKArrY.push_back(localVec->at(i).y);
@@ -174,7 +224,7 @@ void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::
    
   int * revIntCount = new int[commSize];
   
-  
+  // Gather how many points will the rank will send.
   MPI_Gather(&sizeVec,1, MPI_INT, revIntCount,1, MPI_INT,0, MPI_COMM_WORLD);
   int * finalDispls = NULL;
 
@@ -186,7 +236,7 @@ void kMeanDistributePerformance(int argc, char* argv[], int epochs, int k, std::
       finalDispls[i] = finalDispls[i-1] + revIntCount[i-1];
     } 
   }
-  
+  // Create the global array
   MPI_Gatherv(localKArrX.data(),sizeVec,MPI_DOUBLE, globalKArrX.data(), revIntCount, finalDispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Gatherv(localKArrY.data(),sizeVec,MPI_DOUBLE, globalKArrY.data(), revIntCount, finalDispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Gatherv(localKArrZ.data(),sizeVec,MPI_DOUBLE, globalKArrZ.data(), revIntCount, finalDispls,MPI_DOUBLE,0,MPI_COMM_WORLD);
