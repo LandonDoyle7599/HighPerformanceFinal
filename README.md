@@ -144,8 +144,8 @@ python validateResults.py ./csvs/output_serial.csv ./csvs/output_shared_cpu.csv
 ```
 
 ### Scaling Study
-For the scaling study, we chose k={2,4,6}, e={25,50,100}. We chose these k and e values to give us a clear understanding of how these values affect the k-mean clustering's runtime. The problem sizes we chose were 2^20, 2^19, and 2^18.  
-For the parallel vs serial scaling study, we used eight threads for the parallel implementation. Since there is only one thread on the serial, we run the program eight times and we include the speedup and efficiency. 
+For the scaling study, we chose k={2,4,6}, e={25,50,100}. We chose these k and e values to gain a clear understanding of how they affect the k-means clustering's runtime. The problem sizes we chose were 2^20, 2^19, and 2^18.  
+For the parallel vs serial scaling study, we used eight threads for the parallel implementation. Since there is only one thread on the serial, we run the program eight times. We include the parallel speedup and efficiency. 
 | Parallel | Serial |
 |--------|----------|
 |K2 E25|
