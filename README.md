@@ -276,3 +276,32 @@ We used 2-4 GPU for the Distribute GPU and 2-4 Nodes for the Distribute CPU.
 |![Graph](<./graphs/Distribute CPU K6 E 100 NP 6.png>)|![Graph](./graphs/DistributeGPUK6E100Blocksize256.png) |
 | NP 8|Blocksize 1024|
 |![Graph](<./graphs/Distribute CPU K6 E 100 NP 8.png>)|![Graph](./graphs/DistributeGPUK6E100Blocksize1024.png) |
+
+### Graph summery:
+
+### Serial:
+
+the results of the serial testing are rather straight forward, no unexpected performance jump was found changing the K value or number of Epochs.
+
+### Shared CPU:
+
+the data for the parallel scaling as well as the data on speed up shows that for all combinations of K2,4,6 and epoch values 25, 50, 100 we see a marked improvement with 2 cores with 4 or more having limited to no improve over the 2 core model.
+
+### Distributed CPU:
+
+for separate we see mixed results for large number of Epochs and large K values we see improvement with 3 nodes and lost performance with more, With intermediate Epochs we see lesser performance the more cores we add until the K value is small in which case we see a performance jump with 4 nodes for k =2. With smaller epochs we can see improvement across all K values in the 2 to 3 node range. 
+
+### Shared GPU:
+
+While processing the data faster than the shared CPU method, we see a strong jump in time for most K an Epoch values as we jump from 64 to 256 threads. This would strongly suggest the cost of overhead is grouping faster than the performance gained from more processing power.
+
+### Distributed GPU:
+
+The data shows performance much like the shared GPU method with faster times than it’s CPU counterpart, however we see a flatting effect across all K values and Epoch combinations as we add more 3 or more devices to the task. This suggests we’ve reach a ceiling in the method for peak performance for hardware alone and may need to look for software based improvements. 
+
+### Conclusion:
+
+While variation can be seen with different configurations of K and epoch values we do see a few marked trends with the data.
+First being the progression of performance with methods, serial being slower than shared CPU, and so on with the distributed GPU method being the fastest of the groups.
+Second CPU Methods handling weak scaling as we add a second core to make the process.
+Third we see some of the pit falls and bottleneck  that comes from hardware. When we compare the behavior of distributed CPU we see that MPI is more resilient  to larger amounts of nodes without performance lose. Where as with our distributed GPU set up we can see a slight performance increase. This is of course relative, to the scale of the GPU performance as the side of the jump is only about a fifth the size of the distributed CPU deviation, I do feel it’s relevant exaggerate due to the very fast run times of GPU in general. 
