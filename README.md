@@ -3,9 +3,9 @@
 ## Division of Labor
 Landon: Implemented the serial and shared memory CPU implementations. Created the github repo and discord. Created all the python utils to visualize, validate, and trim the dataset. Wrote the README and organized the project structure including helpers.cpp, kmeans_implementations files, and kmeans.cpp.
 
-Kevin: Implemented the cuda GPU and distributed GPU implementations, updated the readme accordingly. Analyzes the graphs.
+Kevin: Implemented the cuda GPU and distributed GPU implementations, updated the readme accordingly. Analyzed the scaling studies graphs.
 
-Brady: Implemented the distributed CPU implementation and updated the readme accordingly. Brady, also performed the scaling studies. Create the graphs. 
+Brady: Implemented the distributed CPU implementation and updated the readme accordingly. Brady, also performed the scaling studies. Created the scaling studies graphs. 
 
 ## How To Run
 
